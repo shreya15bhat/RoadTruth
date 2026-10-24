@@ -17,7 +17,7 @@ export default function AdminLayout() {
             </div>
             <div>
               <div className="text-sm font-black text-white">System Admin</div>
-              <div className="text-[10px] text-purple-400 font-mono">RouteWise Root Console</div>
+              <div className="text-[10px] text-purple-400 font-mono">ROADTRUTH Root Console</div>
             </div>
           </Link>
 

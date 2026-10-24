@@ -1,10 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   SEED_INCIDENTS, 
   SEED_EMPLOYEES, 
   SEED_ROUTES, 
   SEED_JOURNEYS 
 } from '../data/dataTemplates';
+import api, { 
+  getStoredToken, 
+  getStoredUser, 
+  clearStoredAuth, 
+  normalizeIncidentFromBackend 
+} from '../services/api';
 
 const RouteWiseContext = createContext(null);
 
@@ -41,7 +47,95 @@ export const RouteWiseProvider = ({ children }) => {
     localStorage.setItem('routewise_role', newRole);
   };
 
-  // 3. Toast System
+  // 3. User & Authentication State
+  const [token, setToken] = useState(() => getStoredToken());
+  const [user, setUser] = useState(() => getStoredUser());
+  const [backendConnected, setBackendConnected] = useState(false);
+
+  // Role mapping helper
+  const mapBackendRole = useCallback((backendRole) => {
+    if (!backendRole) return 'passenger';
+    if (backendRole === 'employer') return 'employer';
+    if (backendRole === 'admin') return 'admin';
+    if (
+      backendRole.includes('authority') ||
+      backendRole.includes('police') ||
+      backendRole.includes('emergency') ||
+      backendRole.includes('operator')
+    ) {
+      return 'authority';
+    }
+    return 'passenger';
+  }, []);
+
+  // Hydrate user session from backend if token exists
+  useEffect(() => {
+    let isMounted = true;
+    async function checkAuthSession() {
+      try {
+        const health = await api.getHealth();
+        if (isMounted) setBackendConnected(health.status === 'healthy');
+      } catch {
+        if (isMounted) setBackendConnected(false);
+      }
+
+      if (token) {
+        try {
+          const res = await api.getMe();
+          if (isMounted && res.user) {
+            setUser(res.user);
+            if (res.user.role) {
+              setRoleState(mapBackendRole(res.user.role));
+            }
+          }
+        } catch (err) {
+          // Token expired or invalid
+          if (err.status === 401) {
+            clearStoredAuth();
+            if (isMounted) {
+              setToken(null);
+              setUser(null);
+              setRoleState('passenger');
+            }
+          }
+        }
+      }
+    }
+
+    checkAuthSession();
+    return () => { isMounted = false; };
+  }, [token, mapBackendRole]);
+
+  // Auth actions
+  const loginUser = async (identifier, password, preferredRole = null) => {
+    const res = await api.login(identifier, password);
+    setToken(res.token);
+    setUser(res.user);
+    const assignedRole = mapBackendRole(res.user?.role) || preferredRole || 'passenger';
+    setRole(assignedRole);
+    return res;
+  };
+
+  const registerUser = async (registrationData) => {
+    const res = await api.register(registrationData);
+    if (res.token) {
+      setToken(res.token);
+      setUser(res.user);
+      const assignedRole = mapBackendRole(res.user?.role || registrationData.role);
+      setRole(assignedRole);
+    }
+    return res;
+  };
+
+  const logoutUser = () => {
+    api.logout();
+    setToken(null);
+    setUser(null);
+    setRoleState('passenger');
+    localStorage.removeItem('routewise_role');
+  };
+
+  // 4. Toast System
   const [toasts, setToasts] = useState([]);
   const showToast = (title, message = '', type = 'info') => {
     const id = Date.now() + Math.random().toString(36).substring(2, 6);
@@ -55,7 +149,7 @@ export const RouteWiseProvider = ({ children }) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // 4. Incidents State (persisted, user-editable)
+  // 5. Incidents State (persisted with live backend synchronization)
   const [incidents, setIncidents] = useState(() => {
     const saved = localStorage.getItem('routewise_incidents');
     if (saved) {
@@ -64,45 +158,89 @@ export const RouteWiseProvider = ({ children }) => {
     return SEED_INCIDENTS;
   });
 
+  const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
+
+  // Fetch live incidents from backend
+  const fetchIncidents = useCallback(async () => {
+    setIsLoadingIncidents(true);
+    try {
+      const live = await api.getIncidents();
+      if (Array.isArray(live) && live.length > 0) {
+        setIncidents(live);
+        setBackendConnected(true);
+      } else if (Array.isArray(live) && live.length === 0) {
+        // If DB has 0 incidents, keep seed incidents locally so initial experience is not empty
+        setIncidents(prev => (prev && prev.length > 0 ? prev : SEED_INCIDENTS));
+      }
+    } catch (e) {
+      // Backend not running yet; gracefully retain local state
+      setBackendConnected(false);
+    } finally {
+      setIsLoadingIncidents(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchIncidents();
+  }, [fetchIncidents]);
+
   useEffect(() => {
     localStorage.setItem('routewise_incidents', JSON.stringify(incidents));
   }, [incidents]);
 
-  const addIncident = (data) => {
-    const newInc = {
-      id: `inc-${Date.now().toString().slice(-4)}`,
-      title: data.title || `${(data.category || 'hazard').toUpperCase()} Reported`,
-      category: data.category || 'other',
-      severity: data.severity || 'moderate',
-      locationName: data.locationName || 'Coastal NH-66 Corridor',
-      lat: Number(data.lat) || 12.8756,
-      lng: Number(data.lng) || 74.8628,
-      reportedAgo: 'Just now',
-      timestamp: new Date().toISOString(),
-      delayMinutes: Number(data.delayMinutes) || 15,
-      affectedDistanceKm: Number(data.affectedDistanceKm) || 1.2,
-      description: data.description || 'Community incident report submitted.',
-      imageUrl: data.imageUrl || null,
-      verificationLevel: data.imageUrl ? 5 : (data.lat ? 2 : 1),
-      confirmationCount: 1,
-      status: 'active',
-      evidence: {
-        hasGpsLocation: !!data.lat,
-        userReportCount: 1,
-        hasMedia: !!data.imageUrl,
-        avgSpeedKmh: 6.0,
-        normalSpeedKmh: 45.0,
-        authorityConfirmed: false
-      },
-      alternativeRoute: 'Alternative diversion calculated by route planner.'
-    };
+  const addIncident = async (data) => {
+    let savedIncident = null;
 
-    setIncidents(prev => [newInc, ...prev]);
-    showToast('Report Published', 'Incident logged into RouteWise verification workflow.', 'success');
-    return newInc;
+    try {
+      // Attempt backend persistence
+      savedIncident = await api.createIncident(data);
+      setIncidents(prev => [savedIncident, ...prev.filter(i => i.id !== savedIncident.id)]);
+      showToast('Report Published', 'Incident logged into RoadTruth verification workflow.', 'success');
+      return savedIncident;
+    } catch (err) {
+      // Fallback to local storage creation if backend is offline
+      const fallbackInc = {
+        id: `inc-${Date.now().toString().slice(-4)}`,
+        title: data.title || `${(data.category || 'hazard').toUpperCase()} Reported`,
+        category: data.category || 'other',
+        severity: data.severity || 'moderate',
+        locationName: data.locationName || 'Coastal NH-66 Corridor',
+        lat: Number(data.lat) || 12.8756,
+        lng: Number(data.lng) || 74.8628,
+        reportedAgo: 'Just now',
+        timestamp: new Date().toISOString(),
+        delayMinutes: Number(data.delayMinutes) || 15,
+        affectedDistanceKm: Number(data.affectedDistanceKm) || 1.2,
+        description: data.description || 'Community incident report submitted.',
+        imageUrl: data.imageUrl || null,
+        verificationLevel: data.imageUrl ? 5 : (data.lat ? 2 : 1),
+        confirmationCount: 1,
+        status: 'active',
+        evidence: {
+          hasGpsLocation: !!data.lat,
+          userReportCount: 1,
+          hasMedia: !!data.imageUrl,
+          avgSpeedKmh: 6.0,
+          normalSpeedKmh: 45.0,
+          authorityConfirmed: false
+        },
+        alternativeRoute: 'Alternative diversion calculated by route planner.'
+      };
+      setIncidents(prev => [fallbackInc, ...prev]);
+      showToast('Report Saved Locally', 'Backend offline; report cached in local telemetry.', 'info');
+      return fallbackInc;
+    }
   };
 
-  const confirmIncident = (id) => {
+  const confirmIncident = async (id) => {
+    try {
+      if (typeof id === 'number' || (typeof id === 'string' && !id.startsWith('inc-'))) {
+        await api.verifyIncident(id, { action: 'confirm' });
+      }
+    } catch {
+      // Keep optimistic update even if API call fails
+    }
+
     setIncidents(prev => prev.map(inc => {
       if (inc.id === id) {
         const newCount = (inc.confirmationCount || 1) + 1;
@@ -122,17 +260,33 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Incident Confirmed', 'Your confirmation corroborated this road problem.', 'success');
   };
 
-  const resolveIncident = (id) => {
-    setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'cleared' } : inc));
+  const resolveIncident = async (id) => {
+    try {
+      if (typeof id === 'number' || (typeof id === 'string' && !id.startsWith('inc-'))) {
+        await api.clearIncident(id);
+      }
+    } catch {
+      // Local optimistic update
+    }
+
+    setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'cleared', is_cleared: true } : inc));
     showToast('Incident Cleared', 'Marked resolved on the traffic grid.', 'info');
   };
 
-  const deleteIncident = (id) => {
+  const deleteIncident = async (id) => {
+    try {
+      if (typeof id === 'number' || (typeof id === 'string' && !id.startsWith('inc-'))) {
+        await api.clearIncident(id);
+      }
+    } catch {
+      // Local removal
+    }
+
     setIncidents(prev => prev.filter(inc => inc.id !== id));
     showToast('Incident Removed', '', 'info');
   };
 
-  // 5. Employees State (persisted, user-editable)
+  // 6. Employees State (persisted, user-editable)
   const [employees, setEmployees] = useState(() => {
     const saved = localStorage.getItem('routewise_employees');
     if (saved) {
@@ -178,9 +332,38 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Employee Removed', 'Removed from roster.', 'info');
   };
 
-  // 6. Routes & Active Journey State
-  const [routes] = useState(SEED_ROUTES);
+  // 7. Routes & Active Journey State
+  const [routes, setRoutes] = useState(SEED_ROUTES);
   const [selectedRoute, setSelectedRoute] = useState(SEED_ROUTES[0]);
+
+  // Dynamic route alternatives generator using backend intelligence
+  const calculateRouteAlternatives = async (fromCoords, toCoords) => {
+    try {
+      const res = await api.getRouteAlternatives(fromCoords, toCoords);
+      if (res && res.routes && res.routes.length > 0) {
+        // Map backend alternative routes into UI route card format
+        const dynamicRoutes = res.routes.map((r, idx) => ({
+          id: `route-osrm-${idx + 1}`,
+          name: r.summary || `Route Alternative ${idx + 1}`,
+          tag: idx === 0 ? 'Recommended' : (r.is_closure ? 'Roadblock Corridor' : `Alternative ${idx + 1}`),
+          distanceKm: +(r.distance_km || 0).toFixed(1),
+          typicalDurationMin: Math.round(r.duration_minutes || 30),
+          currentDurationMin: Math.round((r.duration_minutes || 30) + (r.risk_score ? r.risk_score / 3 : 0)),
+          delayMin: Math.round(r.risk_score ? r.risk_score / 3 : 0),
+          riskScore: r.risk_score || 0,
+          roadblocks: r.has_confirmed_closure || false,
+          coordinates: r.geometry?.coordinates ? r.geometry.coordinates.map(c => [c[1], c[0]]) : SEED_ROUTES[0].coordinates,
+          corridorAlerts: r.incidents_along_corridor || []
+        }));
+        setRoutes(dynamicRoutes);
+        setSelectedRoute(dynamicRoutes[0]);
+        return dynamicRoutes;
+      }
+    } catch {
+      // Keep static routes if routing engine is not reachable
+    }
+    return SEED_ROUTES;
+  };
 
   const [activeJourney, setActiveJourney] = useState(() => {
     const saved = localStorage.getItem('routewise_active_journey');
@@ -238,7 +421,7 @@ export const RouteWiseProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, [activeJourney.isActive, activeJourney.isPaused]);
 
-  // 7. Journey History
+  // 8. Journey History
   const [journeyHistory, setJourneyHistory] = useState(() => {
     const saved = localStorage.getItem('routewise_journey_history');
     if (saved) {
@@ -302,7 +485,7 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Journey Ended', 'Trip saved to your Journey History. Verified delay proof stored.', 'success');
   };
 
-  // 8. Notifications
+  // 9. Notifications & Notification Preferences
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('routewise_notifications');
     if (saved) {
@@ -318,6 +501,27 @@ export const RouteWiseProvider = ({ children }) => {
     localStorage.setItem('routewise_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
+  const [notificationPreferences, setNotificationPreferences] = useState(() => {
+    const saved = localStorage.getItem('routewise_notif_prefs');
+    if (saved) {
+      try { return JSON.parse(saved); } catch {}
+    }
+    return {
+      trafficJams: true,
+      accidents: true,
+      flooding: true,
+      roadworks: true
+    };
+  });
+
+  const updateNotificationPreference = (key, value) => {
+    setNotificationPreferences(prev => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem('routewise_notif_prefs', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const markAllNotificationsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     showToast('Notifications Marked Read', '', 'info');
@@ -328,7 +532,7 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Notifications Cleared', '', 'info');
   };
 
-  // 9. Emergency SOS State
+  // 10. Emergency SOS State (integrated with backend /api/emergency/sos)
   const [sosActive, setSosActive] = useState(false);
   const sosState = {
     isActive: sosActive,
@@ -336,10 +540,21 @@ export const RouteWiseProvider = ({ children }) => {
     timestamp: sosActive ? new Date().toISOString() : null
   };
 
-  const triggerSOS = () => {
+  const triggerSOS = async (customCoords = null) => {
     setSosActive(true);
-    showToast('DEMO SOS ACTIVATED', 'Simulated emergency state active. Cancel if accidental.', 'warning');
+    try {
+      const coords = customCoords || {
+        latitude: activeJourney?.currentRoute?.coordinates?.[0]?.[0] || 12.8756,
+        longitude: activeJourney?.currentRoute?.coordinates?.[0]?.[1] || 74.8628
+      };
+      await api.triggerEmergencySOS(coords);
+      showToast('EMERGENCY SOS BROADCASTED', 'Dispatched critical emergency alert to RoadTruth traffic desk.', 'warning');
+      fetchIncidents();
+    } catch {
+      showToast('DEMO SOS ACTIVATED', 'Simulated emergency state active. Cancel if accidental.', 'warning');
+    }
   };
+
   const cancelSOS = () => {
     setSosActive(false);
     showToast('SOS Stand Down', 'Simulated emergency broadcast safely cancelled.', 'info');
@@ -372,7 +587,7 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Contact Removed', 'Emergency contact deleted.', 'info');
   };
 
-  // 10. Privacy & Consent Settings
+  // 11. Privacy & Consent Settings
   const [privacySettings, setPrivacySettings] = useState(() => {
     const saved = localStorage.getItem('routewise_privacy');
     if (saved) {
@@ -395,7 +610,7 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Settings Saved', 'Consent rules updated.', 'success');
   };
 
-  // 11. CSV Dataset Import Logic
+  // 12. CSV Dataset Import Logic
   const importDataset = (type, rows) => {
     if (type === 'incidents') {
       const formatted = rows.map((r, i) => ({
@@ -458,7 +673,7 @@ export const RouteWiseProvider = ({ children }) => {
     }
   };
 
-  // 12. Clear All Data (To experience clean empty states)
+  // 13. Clear All Data (To experience clean empty states)
   const clearAllData = () => {
     setIncidents([]);
     setEmployees([]);
@@ -471,7 +686,7 @@ export const RouteWiseProvider = ({ children }) => {
     showToast('Data Cleared', 'All datasets emptied. Experience clean empty states.', 'info');
   };
 
-  // 13. Load Seed Data (To instantly test with project records)
+  // 14. Load Seed Data (To instantly test with project records)
   const loadSeedData = () => {
     setIncidents(SEED_INCIDENTS);
     setEmployees(SEED_EMPLOYEES);
@@ -486,10 +701,19 @@ export const RouteWiseProvider = ({ children }) => {
         toggleTheme,
         role,
         setRole,
+        user,
+        token,
+        isAuthenticated: Boolean(token),
+        loginUser,
+        registerUser,
+        logoutUser,
+        backendConnected,
         toasts,
         showToast,
         removeToast,
         incidents,
+        isLoadingIncidents,
+        fetchIncidents,
         addIncident,
         confirmIncident,
         resolveIncident,
@@ -501,12 +725,15 @@ export const RouteWiseProvider = ({ children }) => {
         routes,
         selectedRoute,
         setSelectedRoute,
+        calculateRouteAlternatives,
         activeJourney,
         startJourney,
         pauseJourney,
         endJourney,
         journeyHistory,
         notifications,
+        notificationPreferences,
+        updateNotificationPreference,
         markAllNotificationsRead,
         clearNotifications,
         sosActive,

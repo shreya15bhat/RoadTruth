@@ -80,7 +80,16 @@ def create_app(config_class=Config):
 
     # Configure CORS for React frontend integration (Vite on 5173 / React on 3000)
     cors_origins = app.config.get("CORS_ALLOWED_ORIGINS", ["http://localhost:3000", "http://localhost:5173"])
-    CORS(app, resources={r"/api/*": {"origins": cors_origins, "methods": ["GET", "POST", "OPTIONS"]}})
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": cors_origins,
+                "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization", "X-Auth-Token"]
+            }
+        }
+    )
 
     # Initialize extensions
     db.init_app(app)

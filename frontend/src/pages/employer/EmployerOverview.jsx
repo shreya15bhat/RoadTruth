@@ -13,9 +13,8 @@ import {
   ShieldCheck, 
   X, 
   FileText, 
-  ArrowRight,
   CheckCircle,
-  AlertTriangle
+  ArrowRight
 } from 'lucide-react';
 
 export default function EmployerOverview() {
@@ -31,30 +30,37 @@ export default function EmployerOverview() {
   if (!employees.length) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-black text-white tracking-tight">Commute Overview</h1>
+        <div className="flex items-center justify-between border-b border-[#1B2A3B] pb-4">
+          <div>
+            <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+              Workforce Mobility Portal
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+              Workforce Commute Overview
+            </h1>
+          </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl transition-all"
+            className="px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors"
           >
             + Add Employee
           </button>
         </div>
 
-        <div className="p-12 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+        <div className="p-12 bg-[#101D2B] border border-[#1B2A3B] rounded-lg text-center space-y-3">
+          <div className="w-12 h-12 rounded-lg bg-[#142436] text-[#64748B] flex items-center justify-center mx-auto">
             <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-white">No traffic data</h3>
+          <h3 className="text-base font-bold text-white">No personnel roster active</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Add or import your traffic dataset to begin analysis.
+            Enroll consented employees or import transit rosters to monitor commute disruption.
           </p>
           <div className="pt-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl"
+              className="px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors"
             >
-              Add Employee
+              Add First Employee
             </button>
           </div>
         </div>
@@ -68,14 +74,19 @@ export default function EmployerOverview() {
     <div className="space-y-6">
       
       {/* 1. Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1B2A3B] pb-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Commute Overview</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Workforce transit operations and delay verification</p>
+          <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+            Workforce Mobility & Transit Verification
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+            Personnel Commute Intelligence
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Audit corridor disruptions and issue verifiable delay credentials</p>
         </div>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5"
+          className="px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Employee</span>
@@ -84,73 +95,74 @@ export default function EmployerOverview() {
 
       {/* 2. Four Operational Metrics Only */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-          <span className="text-xs text-slate-400 font-medium">Employees</span>
-          <span className="text-2xl font-black text-white font-mono block mt-1">{metrics.total}</span>
+        <div className="p-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg">
+          <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">Enrolled Staff</span>
+          <span className="text-2xl font-bold text-white font-mono block mt-1">{metrics.total}</span>
         </div>
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-          <span className="text-xs text-slate-400 font-medium">Travelling</span>
-          <span className="text-2xl font-black text-cyan-400 font-mono block mt-1">{metrics.activeTraveling}</span>
+        <div className="p-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg">
+          <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">In Transit</span>
+          <span className="text-2xl font-bold text-[#1769AA] font-mono block mt-1">{metrics.activeTraveling}</span>
         </div>
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-          <span className="text-xs text-slate-400 font-medium">Delayed</span>
-          <span className="text-2xl font-black text-amber-400 font-mono block mt-1">{metrics.delayed}</span>
+        <div className="p-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg">
+          <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">Corridor Delayed</span>
+          <span className="text-2xl font-bold text-[#F0A629] font-mono block mt-1">{metrics.delayed}</span>
         </div>
-        <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl">
-          <span className="text-xs text-slate-400 font-medium">Verified Delays</span>
-          <span className="text-2xl font-black text-emerald-400 font-mono block mt-1">{metrics.verifiedDelays}</span>
+        <div className="p-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg">
+          <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider">Verified Certificates</span>
+          <span className="text-2xl font-bold text-[#23966B] font-mono block mt-1">{metrics.verifiedDelays}</span>
         </div>
       </div>
 
       {/* 3. Employee Commute Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-[#101D2B] border border-[#1B2A3B] rounded-lg overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-[#1B2A3B] flex items-center justify-between">
           <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-            Employee Commute
+            Consented Employee Commute Grid
           </h2>
           <button
             onClick={() => navigate('/employer/employees')}
-            className="text-xs text-emerald-400 hover:underline font-semibold"
+            className="text-xs text-[#1769AA] hover:text-[#1B7DC8] font-semibold flex items-center gap-1"
           >
-            View all
+            <span>Full roster</span>
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/70 text-slate-400 text-[11px] uppercase border-b border-slate-800">
+            <thead className="bg-[#142436] text-[#64748B] text-[11px] uppercase border-b border-[#1B2A3B]">
               <tr>
                 <th className="py-2.5 px-4 font-semibold">Employee</th>
-                <th className="py-2.5 px-4 font-semibold">Route</th>
-                <th className="py-2.5 px-4 font-semibold">Status</th>
-                <th className="py-2.5 px-4 font-semibold">Delay</th>
-                <th className="py-2.5 px-4 font-semibold text-right">Certificate</th>
+                <th className="py-2.5 px-4 font-semibold">Assigned Corridor</th>
+                <th className="py-2.5 px-4 font-semibold">Journey Status</th>
+                <th className="py-2.5 px-4 font-semibold">Corridor Delay</th>
+                <th className="py-2.5 px-4 font-semibold text-right">Verification</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-[#1B2A3B] text-slate-300">
               {employees.slice(0, 6).map((emp) => (
                 <tr 
                   key={emp.id} 
                   onClick={() => setSelectedEmployee(emp)}
-                  className="hover:bg-slate-800/40 cursor-pointer transition-colors"
+                  className="hover:bg-[#142436]/60 cursor-pointer transition-colors"
                 >
-                  <td className="py-3 px-4 font-medium text-white">
+                  <td className="py-3 px-4 font-semibold text-white">
                     {emp.name}
                     <span className="block text-[11px] text-slate-500 font-mono">{emp.id}</span>
                   </td>
                   <td className="py-3 px-4 text-slate-300">{emp.route}</td>
                   <td className="py-3 px-4">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold capitalize ${
                       emp.journeyStatus === 'delayed'
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-[#F0A629]/20 text-[#F0A629] border border-[#F0A629]/30'
+                        : 'bg-[#23966B]/20 text-[#23966B] border border-[#23966B]/30'
                     }`}>
                       {emp.journeyStatus.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-3 px-4 font-mono font-medium">
                     {emp.estimatedDelayMin > 0 ? (
-                      <span className="text-amber-400">+{emp.estimatedDelayMin}m</span>
+                      <span className="text-[#F0A629]">+{emp.estimatedDelayMin}m</span>
                     ) : (
                       <span className="text-slate-500">—</span>
                     )}
@@ -162,9 +174,9 @@ export default function EmployerOverview() {
                           e.stopPropagation();
                           setSelectedCertEmp(emp);
                         }}
-                        className="px-2.5 py-1 bg-cyan-950 text-cyan-300 hover:bg-cyan-900 border border-cyan-500/30 rounded-lg text-[10px] font-bold transition-colors"
+                        className="px-2.5 py-1 bg-[#1769AA]/15 text-[#1769AA] hover:bg-[#1769AA]/25 border border-[#1769AA]/40 rounded text-[11px] font-semibold transition-colors"
                       >
-                        Proof
+                        Proof Certificate
                       </button>
                     )}
                   </td>
@@ -180,11 +192,11 @@ export default function EmployerOverview() {
         
         {/* Map */}
         <div className="lg:col-span-8 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-            <span>Commute Corridor Map</span>
-            <span className="text-slate-500 font-mono">Mangaluru Operations</span>
-          </div>
-          <div className="rounded-2xl overflow-hidden border border-slate-800 shadow bg-slate-950">
+          <div className="rounded-lg overflow-hidden border border-[#1B2A3B] bg-[#101D2B]">
+            <div className="px-4 py-2.5 bg-[#142436] border-b border-[#1B2A3B] flex items-center justify-between text-xs">
+              <span className="font-semibold text-slate-200">Workforce Corridor Spatial Monitoring</span>
+              <span className="text-[11px] text-[#64748B] font-mono">Coastal Belt Hub</span>
+            </div>
             <TrafficMap
               incidents={incidents}
               selectedRoute={routes[0]}
@@ -194,10 +206,10 @@ export default function EmployerOverview() {
         </div>
 
         {/* Recent Delays List */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow space-y-3">
-          <div className="border-b border-slate-800 pb-2">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-              Recent Delays
+        <div className="lg:col-span-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg p-4 space-y-3">
+          <div className="border-b border-[#1B2A3B] pb-2">
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              Recent Disrupted Commutes
             </h3>
           </div>
 
@@ -206,11 +218,11 @@ export default function EmployerOverview() {
               <div 
                 key={e.id}
                 onClick={() => setSelectedEmployee(e)}
-                className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors space-y-1"
+                className="p-3 bg-[#142436] rounded-lg border border-[#1B2A3B] hover:border-[#2E4763] cursor-pointer transition-colors space-y-1"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-200">{e.name}</span>
-                  <span className="text-amber-400 font-mono font-bold">+{e.estimatedDelayMin}m</span>
+                  <span className="font-semibold text-slate-200">{e.name}</span>
+                  <span className="text-[#F0A629] font-mono font-bold">+{e.estimatedDelayMin}m</span>
                 </div>
                 <div className="text-[11px] text-slate-400">{e.route}</div>
               </div>
@@ -220,20 +232,20 @@ export default function EmployerOverview() {
 
       </div>
 
-      {/* 5. EMPLOYEE DETAILS SIDE PANEL (Section 16) */}
+      {/* 5. EMPLOYEE DETAILS SIDE PANEL */}
       {selectedEmployee && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-slate-900 border-l border-slate-800 shadow-2xl p-6 overflow-y-auto flex flex-col justify-between text-slate-100">
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#101D2B] border-l border-[#1B2A3B] shadow-2xl p-6 overflow-y-auto flex flex-col justify-between text-slate-100">
           <div className="space-y-5">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-start justify-between border-b border-[#1B2A3B] pb-4">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">Employee Details</span>
-                <h3 className="text-xl font-black text-white mt-0.5">{selectedEmployee.name}</h3>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">Staff Record</span>
+                <h3 className="text-lg font-bold text-white mt-0.5">{selectedEmployee.name}</h3>
                 <span className="text-xs text-slate-400 font-mono">{selectedEmployee.id} · {selectedEmployee.department}</span>
               </div>
               <button
                 onClick={() => setSelectedEmployee(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-[#142436] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -241,41 +253,41 @@ export default function EmployerOverview() {
 
             {/* Details Grid */}
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              <div className="p-3 bg-[#142436] border border-[#1B2A3B] rounded-lg space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Route</span>
+                  <span className="text-slate-400">Transit Corridor</span>
                   <span className="font-semibold text-slate-200">{selectedEmployee.route}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Journey status</span>
+                  <span className="text-slate-400">Journey Status</span>
                   <span className="capitalize font-semibold text-slate-200">{selectedEmployee.journeyStatus.replace('_', ' ')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">ETA</span>
+                  <span className="text-slate-400">Estimated Arrival</span>
                   <span className="font-mono font-semibold text-slate-200">{selectedEmployee.estimatedArrival || '09:00 AM'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Delay</span>
-                  <span className="font-mono font-bold text-amber-400">
+                  <span className="text-slate-400">Corridor Delay</span>
+                  <span className="font-mono font-bold text-[#F0A629]">
                     {selectedEmployee.estimatedDelayMin > 0 ? `+${selectedEmployee.estimatedDelayMin} min` : 'On time'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Consent</span>
-                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" /> Active
+                  <span className="text-slate-400">Consent State</span>
+                  <span className="text-[#23966B] font-semibold flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Active Consented
                   </span>
                 </div>
               </div>
 
               {/* Related Incident & Verification */}
               {selectedEmployee.incidentAffected && selectedEmployee.incidentAffected !== 'None (Clear Corridor)' && (
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold">Related Incident</span>
-                  <div className="font-bold text-slate-200">{selectedEmployee.incidentAffected}</div>
-                  <div className="text-[11px] text-cyan-400 flex items-center gap-1 pt-0.5">
+                <div className="p-3 bg-[#142436] border border-[#1B2A3B] rounded-lg space-y-1.5">
+                  <span className="text-[10px] text-[#64748B] uppercase font-bold">Corridor Obstruction</span>
+                  <div className="font-semibold text-slate-200">{selectedEmployee.incidentAffected}</div>
+                  <div className="text-[11px] text-[#1769AA] flex items-center gap-1 pt-0.5">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>{selectedEmployee.verificationStatus || 'Verified Telemetry'}</span>
+                    <span>{selectedEmployee.verificationStatus || 'Verified Telemetry Proof'}</span>
                   </div>
                 </div>
               )}
@@ -283,21 +295,21 @@ export default function EmployerOverview() {
           </div>
 
           {/* Action */}
-          <div className="pt-4 border-t border-slate-800">
+          <div className="pt-4 border-t border-[#1B2A3B]">
             {selectedEmployee.estimatedDelayMin > 0 ? (
               <button
                 onClick={() => {
                   setSelectedCertEmp(selectedEmployee);
                 }}
-                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>View Delay Certificate</span>
+                <span>Issue Delay Certificate</span>
               </button>
             ) : (
               <button
                 onClick={() => setSelectedEmployee(null)}
-                className="w-full py-2 bg-slate-800 text-slate-300 font-semibold text-xs rounded-xl"
+                className="w-full py-2 bg-[#142436] text-slate-300 font-semibold text-xs rounded-lg border border-[#1B2A3B]"
               >
                 Close
               </button>

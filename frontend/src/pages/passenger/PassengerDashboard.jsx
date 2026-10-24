@@ -7,15 +7,11 @@ import {
   MapPin, 
   Route, 
   X, 
-  ShieldCheck, 
-  AlertTriangle, 
-  Clock, 
-  Users, 
-  ArrowRight,
-  ExternalLink,
-  ChevronRight,
   CheckCircle,
-  Circle
+  Circle,
+  ExternalLink,
+  ShieldAlert,
+  ArrowRight
 } from 'lucide-react';
 
 export default function PassengerDashboard() {
@@ -45,11 +41,15 @@ export default function PassengerDashboard() {
   return (
     <div className="space-y-6">
       
-      {/* 1. Header: Simple Greeting & Clean Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 1. Header: Operational Greeting & Route Search */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1B2A3B] pb-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Good morning</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Where are you heading today?</p>
+          <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+            City Transit Network • Coastal Grid
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+            Active Commuter Overview
+          </h1>
         </div>
 
         {/* Search destination form */}
@@ -60,13 +60,13 @@ export default function PassengerDashboard() {
               type="text"
               value={destinationSearch}
               onChange={(e) => setDestinationSearch(e.target.value)}
-              placeholder="Search destination..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+              placeholder="Search destination corridor..."
+              className="w-full pl-9 pr-3 py-2 bg-[#101D2B] border border-[#1B2A3B] rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#1769AA] transition-colors"
             />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow shrink-0 flex items-center gap-1.5"
+            className="px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors shadow-sm shrink-0 flex items-center gap-1.5"
           >
             <Route className="w-3.5 h-3.5" />
             <span>Plan Route</span>
@@ -79,33 +79,42 @@ export default function PassengerDashboard() {
         
         {/* Map: Hero Section */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-slate-950">
+          <div className="rounded-lg overflow-hidden border border-[#1B2A3B] bg-[#101D2B] shadow-sm">
+            <div className="px-4 py-2.5 bg-[#142436] border-b border-[#1B2A3B] flex items-center justify-between text-xs">
+              <span className="font-semibold text-slate-200 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#23966B]"></span>
+                Live Arterial Map
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {incidents.length} Hazards Active
+              </span>
+            </div>
             <TrafficMap
               incidents={incidents}
               selectedRoute={selectedRoute}
               onIncidentClick={handleMarkerClick}
               showCurrentLocation={true}
-              height="h-[420px] sm:h-[480px] lg:h-[520px]"
+              height="h-[420px] sm:h-[480px] lg:h-[500px]"
             />
           </div>
 
           {/* 3 Core Numbers: Typical, Current, Delay */}
-          <div className="grid grid-cols-3 gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-sm text-center">
+          <div className="grid grid-cols-3 gap-3 p-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg text-center">
             <div className="p-2">
-              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Typical</span>
-              <span className="text-xl sm:text-2xl font-black text-slate-200 mt-1 block font-mono">
+              <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider block">Typical Baseline</span>
+              <span className="text-xl sm:text-2xl font-bold text-[#94A3B8] mt-1 block font-mono">
                 {typicalMin} min
               </span>
             </div>
-            <div className="p-2 border-x border-slate-800">
-              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Current</span>
-              <span className="text-xl sm:text-2xl font-black text-white mt-1 block font-mono">
+            <div className="p-2 border-x border-[#1B2A3B]">
+              <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider block">Current Commute</span>
+              <span className="text-xl sm:text-2xl font-bold text-white mt-1 block font-mono">
                 {currentMin} min
               </span>
             </div>
             <div className="p-2">
-              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider block">Delay</span>
-              <span className={`text-xl sm:text-2xl font-black mt-1 block font-mono ${delayMin > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <span className="text-[11px] text-[#64748B] font-semibold uppercase tracking-wider block">Estimated Delay</span>
+              <span className={`text-xl sm:text-2xl font-bold mt-1 block font-mono ${delayMin > 0 ? 'text-[#F0A629]' : 'text-[#23966B]'}`}>
                 {delayMin > 0 ? `+${delayMin} min` : '0 min'}
               </span>
             </div>
@@ -113,19 +122,19 @@ export default function PassengerDashboard() {
         </div>
 
         {/* Right Side: Traffic Alerts Feed */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-            <h2 className="text-sm font-bold text-white tracking-wide">Traffic Alerts</h2>
-            <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-500/30">
-              {incidents.length} Active
+        <div className="lg:col-span-4 bg-[#101D2B] border border-[#1B2A3B] rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2.5 border-b border-[#1B2A3B]">
+            <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Active Incident Alerts</h2>
+            <span className="text-[11px] font-mono text-[#1769AA] bg-[#1769AA]/15 px-2 py-0.5 rounded border border-[#1769AA]/30">
+              {incidents.length} Monitored
             </span>
           </div>
 
-          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
             {incidents.length === 0 ? (
               <div className="py-12 text-center text-slate-500 text-xs space-y-1">
-                <p>No traffic alerts</p>
-                <p className="text-[11px] text-slate-600">Road conditions in your area are clear.</p>
+                <p className="font-semibold text-slate-400">No active alerts</p>
+                <p className="text-[11px] text-slate-500">Corridors in your jurisdiction report normal transit flow.</p>
               </div>
             ) : (
               incidents.map((inc) => {
@@ -136,26 +145,26 @@ export default function PassengerDashboard() {
                   <div
                     key={inc.id}
                     onClick={() => handleMarkerClick(inc)}
-                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                    className={`p-3 rounded-lg border text-xs cursor-pointer transition-all ${
                       selectedIncident?.id === inc.id
-                        ? 'bg-cyan-950/40 border-cyan-500/60 shadow-md'
-                        : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-950'
+                        ? 'bg-[#1769AA]/15 border-[#1769AA]'
+                        : 'bg-[#142436] border-[#1B2A3B] hover:border-[#2E4763]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <span className={`w-2 h-2 rounded-full ${isSevere ? 'bg-red-500' : isModerate ? 'bg-amber-400' : 'bg-emerald-400'}`}></span>
-                          <span className="font-bold text-slate-200 capitalize">{inc.category || 'Hazard'}</span>
-                          <span className="text-[10px] text-slate-500">• {inc.reportedAgo || 'Recent'}</span>
+                          <span className={`w-2 h-2 rounded-full ${isSevere ? 'bg-[#E5484D]' : isModerate ? 'bg-[#F0A629]' : 'bg-[#23966B]'}`}></span>
+                          <span className="font-semibold text-slate-200 capitalize">{inc.category || 'Hazard'}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">• {inc.reportedAgo || 'Recent'}</span>
                         </div>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[180px]">
-                          {inc.locationName || 'Mangaluru Road'}
+                        <p className="text-[11px] text-slate-400 truncate max-w-[190px]">
+                          {inc.locationName || 'Mangaluru Arterial Road'}
                         </p>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <span className="text-xs font-bold text-amber-400 font-mono">
+                        <span className="text-xs font-bold text-[#F0A629] font-mono">
                           +{inc.delayMinutes || 15}m
                         </span>
                         <span className="block text-[10px] text-slate-500">
@@ -174,13 +183,13 @@ export default function PassengerDashboard() {
 
       {/* 3. INCIDENT DETAIL SIDE PANEL (Progressive Disclosure) */}
       {selectedIncident && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-slate-900 border-l border-slate-800 shadow-2xl p-6 overflow-y-auto flex flex-col justify-between text-slate-100">
+        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#101D2B] border-l border-[#1B2A3B] shadow-2xl p-6 overflow-y-auto flex flex-col justify-between text-slate-100">
           <div className="space-y-5">
             {/* Header */}
-            <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-start justify-between border-b border-[#1B2A3B] pb-4">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-400">Incident Details</span>
-                <h3 className="text-xl font-black text-white capitalize mt-0.5">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#1769AA]">Incident Telemetry</span>
+                <h3 className="text-lg font-bold text-white capitalize mt-0.5">
                   {selectedIncident.category || 'Road Hazard'}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -189,7 +198,7 @@ export default function PassengerDashboard() {
               </div>
               <button
                 onClick={() => setSelectedIncident(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-[#142436] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -197,36 +206,36 @@ export default function PassengerDashboard() {
 
             {/* Severity Pill */}
             <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
+              <span className={`px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 ${
                 selectedIncident.severity === 'severe' || selectedIncident.severity === 'critical'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  ? 'bg-[#E5484D]/15 text-[#E5484D] border border-[#E5484D]/30'
                   : selectedIncident.severity === 'moderate'
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-[#F0A629]/15 text-[#F0A629] border border-[#F0A629]/30'
+                  : 'bg-[#23966B]/15 text-[#23966B] border border-[#23966B]/30'
               }`}>
-                <span>{selectedIncident.severity === 'severe' ? '🔴 Severe' : selectedIncident.severity === 'moderate' ? '🟡 Moderate' : '🟢 Normal'}</span>
+                <span>{selectedIncident.severity === 'severe' ? 'Severe Congestion' : selectedIncident.severity === 'moderate' ? 'Moderate Congestion' : 'Normal Flow'}</span>
               </span>
-              <span className="text-xs text-slate-400">• Reported {selectedIncident.reportedAgo || 'Recently'}</span>
+              <span className="text-xs text-slate-400 font-mono">• Reported {selectedIncident.reportedAgo || 'Recently'}</span>
             </div>
 
             {/* Concise Stats: Delay, Reports, Verification */}
-            <div className="grid grid-cols-3 gap-2 p-3 bg-slate-950 border border-slate-800 rounded-xl text-center">
+            <div className="grid grid-cols-3 gap-2 p-3 bg-[#142436] border border-[#1B2A3B] rounded-lg text-center">
               <div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold">Delay</div>
-                <div className="text-base font-bold text-amber-400 font-mono mt-0.5">
-                  {selectedIncident.delayMinutes || 15} min
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">Delay Impact</div>
+                <div className="text-base font-bold text-[#F0A629] font-mono mt-0.5">
+                  +{selectedIncident.delayMinutes || 15}m
                 </div>
               </div>
-              <div className="border-x border-slate-800/80">
-                <div className="text-[10px] text-slate-500 uppercase font-bold">Reports</div>
+              <div className="border-x border-[#1B2A3B]">
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">Reports</div>
                 <div className="text-base font-bold text-slate-200 font-mono mt-0.5">
                   {selectedIncident.confirmationCount || 1}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold">TrustScore</div>
-                <div className="text-base font-bold text-cyan-400 font-mono mt-0.5">
-                  {selectedIncident.verificationLevel >= 4 ? 'High' : selectedIncident.verificationLevel >= 2 ? 'Medium' : 'Basic'}
+                <div className="text-[10px] text-[#64748B] uppercase font-bold">Confidence</div>
+                <div className="text-base font-bold text-[#1769AA] font-mono mt-0.5">
+                  {selectedIncident.verificationLevel >= 4 ? 'Verified' : selectedIncident.verificationLevel >= 2 ? 'Corroborated' : 'Preliminary'}
                 </div>
               </div>
             </div>
@@ -234,55 +243,55 @@ export default function PassengerDashboard() {
             {/* Compact 5-Signal Timeline */}
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-200">Verification</span>
-                <span className="text-[11px] text-cyan-400 font-mono font-bold">
-                  {Math.min(selectedIncident.verificationLevel || 3, 5)} of 5 signals
+                <span className="font-semibold text-slate-200">Verification Signals</span>
+                <span className="text-[11px] text-[#1769AA] font-mono font-bold">
+                  {Math.min(selectedIncident.verificationLevel || 3, 5)} of 5 Verified
                 </span>
               </div>
 
-              <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2 text-xs font-medium">
-                <div className="flex items-center gap-2 text-emerald-400">
+              <div className="p-3 bg-[#142436] border border-[#1B2A3B] rounded-lg space-y-2 text-xs font-medium">
+                <div className="flex items-center gap-2 text-[#23966B]">
                   <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                  <span>User Reported</span>
+                  <span>Citizen Report Logged</span>
                 </div>
-                <div className="flex items-center gap-2 text-emerald-400">
+                <div className="flex items-center gap-2 text-[#23966B]">
                   <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                  <span>GPS Location Confirmed</span>
+                  <span>GPS Location Validated</span>
                 </div>
-                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 3 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 3 ? 'text-[#23966B]' : 'text-slate-500'}`}>
                   {selectedIncident.verificationLevel >= 3 ? <CheckCircle className="w-3.5 h-3.5 shrink-0" /> : <Circle className="w-3.5 h-3.5 shrink-0" />}
-                  <span>Multiple Citizen Reports</span>
+                  <span>Multi-User Corroboration</span>
                 </div>
-                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 4 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 4 ? 'text-[#23966B]' : 'text-slate-500'}`}>
                   {selectedIncident.verificationLevel >= 4 ? <CheckCircle className="w-3.5 h-3.5 shrink-0" /> : <Circle className="w-3.5 h-3.5 shrink-0" />}
-                  <span>Telemetry Speed Slowdown</span>
+                  <span>Corridor Velocity Drop Detected</span>
                 </div>
-                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 5 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                <div className={`flex items-center gap-2 ${selectedIncident.verificationLevel >= 5 ? 'text-[#23966B]' : 'text-slate-500'}`}>
                   {selectedIncident.verificationLevel >= 5 ? <CheckCircle className="w-3.5 h-3.5 shrink-0" /> : <Circle className="w-3.5 h-3.5 shrink-0" />}
-                  <span>Media / Forensic Evidence</span>
+                  <span>Media / Forensic Evidence Confirmed</span>
                 </div>
               </div>
             </div>
 
             {/* Evidence Drawer Toggle */}
             {showEvidence && selectedIncident.imageUrl && (
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Forensic Image</span>
+              <div className="p-3 bg-[#142436] border border-[#1B2A3B] rounded-lg space-y-2">
+                <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Forensic Image</span>
                 <img
                   src={selectedIncident.imageUrl}
                   alt="Incident evidence"
-                  className="w-full h-36 object-cover rounded-lg border border-slate-800"
+                  className="w-full h-36 object-cover rounded border border-[#1B2A3B]"
                 />
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="pt-4 border-t border-slate-800 space-y-2">
+          <div className="pt-4 border-t border-[#1B2A3B] space-y-2">
             {selectedIncident.imageUrl && (
               <button
                 onClick={() => setShowEvidence(!showEvidence)}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition-colors"
+                className="w-full py-2 bg-[#142436] hover:bg-[#1B2A3B] text-slate-200 font-semibold text-xs rounded-lg border border-[#1B2A3B] transition-colors"
               >
                 {showEvidence ? 'Hide Evidence' : 'View Evidence'}
               </button>
@@ -293,10 +302,10 @@ export default function PassengerDashboard() {
                 setSelectedIncident(null);
                 navigate(`/passenger/route?avoid=${encodeURIComponent(selectedIncident.locationName || 'Incident')}`);
               }}
-              className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5"
             >
               <Route className="w-3.5 h-3.5" />
-              <span>Alternative Route</span>
+              <span>Calculate Bypass Route</span>
             </button>
           </div>
         </div>

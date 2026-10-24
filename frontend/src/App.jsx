@@ -53,6 +53,7 @@ import AuthoritySettings from './pages/authority/AuthoritySettings';
 
 // Admin Page
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 export default function App() {
   return (
@@ -73,7 +74,17 @@ export default function App() {
           </Route>
 
           {/* DEDICATED PASSENGER PORTAL */}
-          <Route path="/passenger" element={<PassengerLayout />}>
+          <Route
+            path="/passenger"
+            element={
+              <ProtectedRoute
+                portalName="passenger"
+                allowedRoles={['citizen', 'employer', 'traffic_authority', 'traffic_police', 'emergency_service', 'road_operator', 'admin']}
+              >
+                <PassengerLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<PassengerDashboard />} />
             <Route path="dashboard" element={<Navigate to="/passenger" replace />} />
             <Route path="route" element={<PassengerRoutePlanner />} />
@@ -87,7 +98,14 @@ export default function App() {
           </Route>
 
           {/* DEDICATED EMPLOYER PORTAL */}
-          <Route path="/employer" element={<EmployerLayout />}>
+          <Route
+            path="/employer"
+            element={
+              <ProtectedRoute portalName="employer" allowedRoles={['employer', 'admin']}>
+                <EmployerLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<EmployerOverview />} />
             <Route path="overview" element={<Navigate to="/employer" replace />} />
             <Route path="employees" element={<EmployerEmployees />} />
@@ -101,7 +119,17 @@ export default function App() {
           </Route>
 
           {/* DEDICATED TRAFFIC AUTHORITY PORTAL */}
-          <Route path="/authority" element={<AuthorityLayout />}>
+          <Route
+            path="/authority"
+            element={
+              <ProtectedRoute
+                portalName="authority"
+                allowedRoles={['traffic_authority', 'traffic_police', 'emergency_service', 'road_operator', 'admin']}
+              >
+                <AuthorityLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AuthorityOverview />} />
             <Route path="overview" element={<Navigate to="/authority" replace />} />
             <Route path="incidents" element={<AuthorityIncidents />} />
@@ -115,7 +143,14 @@ export default function App() {
           </Route>
 
           {/* SEPARATE SYSTEM ADMIN AREA */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute portalName="admin" allowedRoles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<Navigate to="/admin" replace />} />
           </Route>

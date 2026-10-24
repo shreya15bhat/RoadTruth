@@ -3,15 +3,28 @@ import { useRouteWise } from '../../context/RouteWiseContext';
 import { exportToCSV } from '../../utils/csvParser';
 import CSVImportModal from '../../components/forms/CSVImportModal';
 import { Database, Upload, Download, Trash2, RefreshCw } from 'lucide-react';
+import api from '../../services/api';
 
 export default function AuthorityData() {
   const { incidents, importDataset, clearAllData, loadSeedData } = useRouteWise();
   const [isImportOpen, setIsImportOpen] = useState(false);
 
-  const handleExport = () => {
-    if (!incidents.length) return;
-    const headers = ['title', 'category', 'severity', 'locationName', 'delayMinutes', 'verificationLevel'];
-    exportToCSV(`RouteWise_Authority_Incident_Audit_${new Date().toISOString().slice(0, 10)}.csv`, headers, incidents);
+  const handleExport = async () => {
+    try {
+      const blob = await api.exportIncidentsCSV();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `RoadTruth_Authority_Incident_Audit_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      if (!incidents.length) return;
+      const headers = ['title', 'category', 'severity', 'locationName', 'delayMinutes', 'verificationLevel'];
+      exportToCSV(`RouteWise_Authority_Incident_Audit_${new Date().toISOString().slice(0, 10)}.csv`, headers, incidents);
+    }
   };
 
   return (

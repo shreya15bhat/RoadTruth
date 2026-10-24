@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouteWise } from '../../context/RouteWiseContext';
 import { 
   ResponsiveContainer, 
@@ -11,13 +11,29 @@ import {
   Tooltip, 
   CartesianGrid 
 } from 'recharts';
-import { BarChart3, TrendingUp, Layers, MapPin } from 'lucide-react';
+import { TrendingUp, Layers, MapPin } from 'lucide-react';
+import api from '../../services/api';
 
 export default function TrafficAnalyticsDashboard() {
   const { incidents } = useRouteWise();
 
   const [activeTab, setActiveTab] = useState('trends'); // 'trends' | 'categories' | 'hotspots'
   const [selectedCorridor, setSelectedCorridor] = useState('all');
+  const [backendAnalytics, setBackendAnalytics] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAnalytics() {
+      try {
+        const res = await api.getTrafficAnalytics();
+        if (isMounted && res) {
+          setBackendAnalytics(res);
+        }
+      } catch {}
+    }
+    loadAnalytics();
+    return () => { isMounted = false; };
+  }, []);
 
   // Filtered incidents
   const filteredIncidents = incidents.filter(i => {
@@ -61,78 +77,83 @@ export default function TrafficAnalyticsDashboard() {
     <div className="space-y-6">
       
       {/* 1. Header with Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1B2A3B] pb-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Analytics</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Corridor trends, category distribution, and chokepoints</p>
+          <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+            Spatial Telemetry Analytics
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+            Corridor Trend & Volume Analysis
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">Telemetry time series, category breakdown, and chokepoint diagnostics</p>
         </div>
 
         {/* Filter Dropdown */}
         <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-500 font-semibold">Corridor:</label>
+          <label className="text-xs text-[#64748B] font-semibold">Corridor Filter:</label>
           <select
             value={selectedCorridor}
             onChange={(e) => setSelectedCorridor(e.target.value)}
-            className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            className="px-3 py-1.5 bg-[#101D2B] border border-[#1B2A3B] rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#1769AA]"
           >
-            <option value="all">All Corridors</option>
+            <option value="all">All Regional Corridors</option>
             <option value="NH-66">NH-66 Coastal Highway</option>
-            <option value="Kottara">Kottara Chowki</option>
-            <option value="Pumpwell">Pumpwell Circle</option>
+            <option value="Kottara">Kottara Chowki Node</option>
+            <option value="Pumpwell">Pumpwell Circle Node</option>
           </select>
         </div>
       </div>
 
       {/* 2. Tabs: Trends | Categories | Hotspots */}
-      <div className="flex border-b border-slate-800 text-xs font-bold gap-6">
+      <div className="flex border-b border-[#1B2A3B] text-xs font-semibold gap-6">
         <button
           onClick={() => setActiveTab('trends')}
           className={`pb-2.5 transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
             activeTab === 'trends'
-              ? 'border-cyan-400 text-cyan-400'
+              ? 'border-[#1769AA] text-white'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <TrendingUp className="w-3.5 h-3.5" />
-          <span>Trends</span>
+          <span>Hourly Congestion Trends</span>
         </button>
 
         <button
           onClick={() => setActiveTab('categories')}
           className={`pb-2.5 transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
             activeTab === 'categories'
-              ? 'border-cyan-400 text-cyan-400'
+              ? 'border-[#1769AA] text-white'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          <span>Categories</span>
+          <span>Hazard Categories</span>
         </button>
 
         <button
           onClick={() => setActiveTab('hotspots')}
           className={`pb-2.5 transition-colors border-b-2 -mb-px flex items-center gap-1.5 ${
             activeTab === 'hotspots'
-              ? 'border-cyan-400 text-cyan-400'
+              ? 'border-[#1769AA] text-white'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <MapPin className="w-3.5 h-3.5" />
-          <span>Hotspots</span>
+          <span>Priority Chokepoints</span>
         </button>
       </div>
 
-      {/* 3. Tab Content (One chart view at a time) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+      {/* 3. Tab Content */}
+      <div className="bg-[#101D2B] border border-[#1B2A3B] rounded-lg p-5 shadow-sm">
         
         {/* TAB 1: TRENDS */}
         {activeTab === 'trends' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Congestion by Time of Day
+              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                Corridor Latency by Hour of Day
               </h3>
-              <span className="text-[11px] text-slate-500 font-mono">Peak: 09:00 AM & 17:00 PM</span>
+              <span className="text-[11px] text-[#64748B] font-mono">Peak Traffic Windows: 08:30–09:45 AM & 17:30–19:00 PM</span>
             </div>
 
             <div className="h-64 w-full">
@@ -140,18 +161,18 @@ export default function TrafficAnalyticsDashboard() {
                 <AreaChart data={hourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="delayGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#1769AA" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#1769AA" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="hour" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={{ stroke: '#334155' }} />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={{ stroke: '#334155' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1B2A3B" />
+                  <XAxis dataKey="hour" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={{ stroke: '#1B2A3B' }} />
+                  <YAxis tick={{ fill: '#64748B', fontSize: 10 }} axisLine={{ stroke: '#1B2A3B' }} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
-                    itemStyle={{ color: '#f8fafc' }}
+                    contentStyle={{ backgroundColor: '#101D2B', borderColor: '#1B2A3B', borderRadius: '6px', fontSize: '11px', color: '#F8FAFC' }}
+                    itemStyle={{ color: '#F8FAFC' }}
                   />
-                  <Area type="monotone" dataKey="delayMin" name="Delay (min)" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#delayGrad)" />
+                  <Area type="monotone" dataKey="delayMin" name="Estimated Delay (min)" stroke="#1769AA" strokeWidth={2} fillOpacity={1} fill="url(#delayGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -161,24 +182,24 @@ export default function TrafficAnalyticsDashboard() {
         {/* TAB 2: CATEGORIES */}
         {activeTab === 'categories' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Incidents by Category
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              Corridor Incidents by Category
             </h3>
 
             {categoryData.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-500">No incident categories available.</div>
+              <div className="py-12 text-center text-xs text-slate-500">No incident categories recorded.</div>
             ) : (
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={{ stroke: '#334155' }} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={{ stroke: '#334155' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1B2A3B" />
+                    <XAxis dataKey="name" tick={{ fill: '#64748B', fontSize: 10 }} axisLine={{ stroke: '#1B2A3B' }} />
+                    <YAxis tick={{ fill: '#64748B', fontSize: 10 }} axisLine={{ stroke: '#1B2A3B' }} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '11px' }}
-                      itemStyle={{ color: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: '#101D2B', borderColor: '#1B2A3B', borderRadius: '6px', fontSize: '11px', color: '#F8FAFC' }}
+                      itemStyle={{ color: '#F8FAFC' }}
                     />
-                    <Bar dataKey="count" name="Incidents" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" name="Incidents" fill="#1769AA" radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -189,30 +210,30 @@ export default function TrafficAnalyticsDashboard() {
         {/* TAB 3: HOTSPOTS */}
         {activeTab === 'hotspots' && (
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
               Top Bottlenecks & Delay Impact
             </h3>
 
             {hotspotData.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-500">No hotspot data available.</div>
+              <div className="py-12 text-center text-xs text-slate-500">No hotspot telemetry available.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950/70 text-slate-400 text-[11px] uppercase border-b border-slate-800">
+                  <thead className="bg-[#142436] text-[#64748B] text-[11px] uppercase border-b border-[#1B2A3B]">
                     <tr>
-                      <th className="py-2.5 px-3">Location</th>
+                      <th className="py-2.5 px-3">Location Node</th>
                       <th className="py-2.5 px-3">Category</th>
-                      <th className="py-2.5 px-3">Average Delay</th>
+                      <th className="py-2.5 px-3">Corridor Latency</th>
                       <th className="py-2.5 px-3 text-right">Confirmations</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  <tbody className="divide-y divide-[#1B2A3B] text-slate-300">
                     {hotspotData.map((h, i) => (
-                      <tr key={i} className="hover:bg-slate-800/40">
+                      <tr key={i} className="hover:bg-[#142436]/60">
                         <td className="py-3 px-3 font-semibold text-white">{h.location}</td>
                         <td className="py-3 px-3 capitalize text-slate-400">{h.category}</td>
-                        <td className="py-3 px-3 font-mono font-bold text-amber-400">+{h.delay} min</td>
-                        <td className="py-3 px-3 font-mono text-right text-slate-400">{h.reports} reports</td>
+                        <td className="py-3 px-3 font-mono font-bold text-[#F0A629]">+{h.delay} min</td>
+                        <td className="py-3 px-3 font-mono text-right text-slate-400">{h.reports} verified</td>
                       </tr>
                     ))}
                   </tbody>

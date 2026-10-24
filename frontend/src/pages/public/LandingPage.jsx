@@ -1,325 +1,304 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useRouteWise } from '../../context/RouteWiseContext';
 import { 
   Navigation, 
   MapPin, 
   Search, 
-  ShieldCheck, 
-  AlertTriangle, 
-  Clock, 
-  Users, 
-  Building2, 
-  Activity, 
   ArrowRight, 
-  Sparkles, 
   Radio, 
-  CheckCircle2, 
-  TrendingUp,
-  Compass,
-  FileCheck
+  AlertCircle,
+  AlertTriangle,
+  Activity,
+  Layers,
+  Clock,
+  ShieldCheck
 } from 'lucide-react';
-import EvidenceChainBanner from '../../components/common/EvidenceChainBanner';
+
+const CORRIDOR_HOTSPOTS = [
+  { name: 'Surathkal NITK Corridor', lat: 13.0118, lng: 74.7943 },
+  { name: 'Hampankatta City Center', lat: 12.8688, lng: 74.8436 },
+  { name: 'Pumpwell (Mahaveera Circle)', lat: 12.8622, lng: 74.8637 },
+  { name: 'Kottara Chowki Flyover', lat: 12.9056, lng: 74.8384 },
+  { name: 'Udupi City Hub', lat: 13.3409, lng: 74.7421 }
+];
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, incidents } = useRouteWise();
   const [destinationInput, setDestinationInput] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  const activeIncidents = incidents.filter(i => i.status !== 'cleared');
+  const severeCount = activeIncidents.filter(i => i.severity === 'critical' || i.severity === 'severe').length;
 
   const handleDestinationSearch = (e) => {
-    e.preventDefault();
-    if (destinationInput.trim()) {
-      navigate(`/passenger/route?destination=${encodeURIComponent(destinationInput)}`);
+    if (e && e.preventDefault) e.preventDefault();
+    const query = destinationInput.trim();
+
+    if (!query) {
+      setValidationError('Please enter a destination to inspect corridor traffic.');
+      return;
+    }
+
+    setValidationError('');
+
+    if (isAuthenticated) {
+      navigate(`/passenger/route?destination=${encodeURIComponent(query)}`);
     } else {
-      navigate('/passenger');
+      navigate(`/login?portal=passenger&destination=${encodeURIComponent(query)}`);
+    }
+  };
+
+  const handleSelectQuickDest = (dest) => {
+    setDestinationInput(dest);
+    setValidationError('');
+    if (isAuthenticated) {
+      navigate(`/passenger/route?destination=${encodeURIComponent(dest)}`);
+    } else {
+      navigate(`/login?portal=passenger&destination=${encodeURIComponent(dest)}`);
     }
   };
 
   return (
-    <div className="space-y-24 pb-16">
-      {/* 1. HERO SECTION */}
-      <section className="relative pt-6 sm:pt-14 text-center max-w-4xl mx-auto space-y-7">
-        {/* Subdued Mobility Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 text-xs font-semibold backdrop-blur-md">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Next-Generation Transit Intelligence & Commute Evidence</span>
-        </div>
-
-        {/* Compelling Hero Headline */}
-        <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
-          Beat the Traffic. <br />
-          <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-500 bg-clip-text text-transparent">
-            Prove the Delay.
-          </span> <br />
-          Improve Every Journey.
-        </h1>
-
-        <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          RouteWise AI connects road incident reporting, verification, route intelligence and commute analytics to help passengers, organizations and traffic authorities make better mobility decisions.
-        </p>
-
-        {/* Destination Search Box */}
-        <div className="max-w-xl mx-auto pt-2">
-          <form onSubmit={handleDestinationSearch} className="relative flex items-center">
-            <MapPin className="w-5 h-5 text-red-400 absolute left-4 pointer-events-none" />
-            <input
-              type="text"
-              value={destinationInput}
-              onChange={(e) => setDestinationInput(e.target.value)}
-              placeholder="Where are you going today? (e.g. Hampankatta, Surathkal, Udupi)..."
-              className="w-full pl-12 pr-32 py-4 bg-slate-900 border border-slate-700/80 rounded-2xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 shadow-2xl focus:outline-none focus:border-cyan-500 transition-all"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md flex items-center gap-1.5"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Search</span>
-            </button>
-          </form>
-
-          {/* Quick Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-5">
-            <Link
-              to="/passenger/route"
-              className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2"
-            >
-              <Navigation className="w-4 h-4 fill-slate-950 rotate-45" />
-              <span>Plan a Route</span>
-            </Link>
-
-            <Link
-              to="/authority"
-              className="px-6 py-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-2"
-            >
-              <Activity className="w-4 h-4 text-cyan-400" />
-              <span>Explore Traffic Intelligence</span>
-            </Link>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-12">
+      {/* 1. EDITORIAL TRAFFIC COMMAND HERO */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Left Column: Direct Traffic Problem & Action */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Municipal Authority Badge */}
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#101D2B] border border-[#1B2A3B] text-xs font-mono text-[#94A3B8]">
+            <span className="w-2 h-2 rounded-full bg-[#23966B] animate-pulse"></span>
+            <span className="text-white font-semibold">URBAN TRAFFIC INTELLIGENCE</span>
+            <span className="text-[#64748B]">|</span>
+            <span>NH-66 COASTAL ARTERY</span>
           </div>
-        </div>
-      </section>
 
-      {/* 2. DISTINCTIVE HERO VISUAL: MODERN MOBILITY COMMAND INTERFACE */}
-      <section className="max-w-6xl mx-auto px-4">
-        <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl p-6 sm:p-10">
-          {/* Subtle Background Map Grid / Nodes Pattern */}
-          <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+          {/* Headline */}
+          <div className="space-y-3">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Understand Traffic. <br />
+              <span className="text-[#1769AA]">Move Smarter.</span>
+            </h1>
+            <p className="text-sm sm:text-base text-[#94A3B8] leading-relaxed max-w-xl">
+              Real-time multi-source corridor monitoring, verified incident telemetry, and automated delay validation for citizens, employers, and traffic control authorities.
+            </p>
+          </div>
 
-          {/* Connected Flow Architecture Visual */}
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Visual Route Corridor Map Simulation */}
-            <div className="lg:col-span-7 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-mono text-cyan-400 font-bold flex items-center gap-1.5">
-                  <Radio className="w-3.5 h-3.5 animate-pulse text-cyan-400" />
-                  <span>LIVE CORRIDOR TELEMETRY: NH-66 AXIS</span>
-                </span>
-                <span className="text-[11px] text-slate-500 font-mono">Consensus Nodes Active</span>
+          {/* Prominent Location Search */}
+          <div className="space-y-2.5 pt-1 max-w-xl">
+            <form onSubmit={handleDestinationSearch} className="relative flex items-center">
+              <MapPin className="w-4 h-4 text-[#E5484D] absolute left-4 pointer-events-none" />
+              <input
+                type="text"
+                value={destinationInput}
+                onChange={(e) => {
+                  setDestinationInput(e.target.value);
+                  if (validationError) setValidationError('');
+                }}
+                placeholder="Where are you going? (e.g. Hampankatta, Surathkal NITK)..."
+                className="w-full pl-11 pr-28 py-3.5 bg-[#101D2B] border border-[#1B2A3B] focus:border-[#1769AA] rounded-lg text-xs sm:text-sm text-white placeholder-[#64748B] focus:outline-none transition-colors"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="absolute right-1.5 px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
+              </button>
+            </form>
+
+            {/* Validation Error Message */}
+            {validationError && (
+              <div className="p-2.5 rounded-md bg-[#381316] border border-[#E5484D]/40 text-[#E5484D] text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{validationError}</span>
               </div>
+            )}
 
-              {/* Graphic Flow Line Visualization */}
-              <div className="relative h-44 rounded-xl bg-slate-950 border border-slate-800/80 p-4 flex flex-col justify-between overflow-hidden">
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
-                    <span className="font-bold text-slate-200">Surathkal Node</span>
-                  </div>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">48 km/h Normal</span>
-                </div>
-
-                {/* Animated Connecting Corridor Line */}
-                <div className="relative w-full h-1.5 bg-slate-800 rounded-full my-auto overflow-hidden">
-                  <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-cyan-500 via-amber-400 to-red-500 w-3/4 rounded-full"></div>
-                  <div className="absolute top-0 bottom-0 w-8 bg-white/60 blur-[2px] animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
-                </div>
-
-                {/* Choke Point Tag */}
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-red-500 animate-ping"></span>
-                    <span className="font-bold text-red-300">Thokkottu Bottleneck (+28m)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
-                    <span className="font-bold text-slate-200">Hampankatta Hub</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                <span>Multimodal sensor consensus: 14 speed telemetry drop points</span>
-                <span className="text-cyan-400 font-bold">TrustScore: Level 5 Verified</span>
-              </div>
-            </div>
-
-            {/* Right Story Synthesis */}
-            <div className="lg:col-span-5 space-y-4">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400 block">
-                Evidence-Driven Commute Telemetry
-              </span>
-              <h3 className="text-2xl font-black text-white leading-snug">
-                Turning Traffic Delays into Verifiable Civic Facts
-              </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Ordinary apps only show colors on a map. RouteWise AI creates an unbroken evidence chain from the instant a citizen reports an obstruction, through GPS speed corroboration, to automated HR delay proof and municipal engineering reviews.
-              </p>
-              <div className="pt-2">
-                <Link
-                  to="/select-role"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+            {/* Key Corridors Quick-Select */}
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] pt-0.5">
+              <span className="text-[#64748B] font-medium mr-1 font-mono">Corridors:</span>
+              {CORRIDOR_HOTSPOTS.map((spot, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSelectQuickDest(spot.name)}
+                  className="px-2 py-0.5 rounded bg-[#101D2B] hover:bg-[#142436] text-[#94A3B8] hover:text-white border border-[#1B2A3B] transition-colors cursor-pointer"
                 >
-                  <span>Select Your RouteWise Experience</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+                  {spot.name}
+                </button>
+              ))}
             </div>
+          </div>
+
+          {/* Action Row */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              to="/select-role"
+              className="px-5 py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            >
+              <span>Access Role Workspaces</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+
+            <Link
+              to={isAuthenticated ? "/passenger/route" : "/login?portal=passenger"}
+              className="px-4 py-2.5 bg-[#101D2B] hover:bg-[#142436] border border-[#1B2A3B] text-slate-200 hover:text-white font-medium text-xs rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Navigation className="w-3.5 h-3.5 text-[#1769AA] rotate-45" />
+              <span>Open Route Planner</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Right Column: Live Corridor Status Telemetry Panel (Real Data) */}
+        <div className="lg:col-span-5 bg-[#101D2B] border border-[#1B2A3B] rounded-xl p-5 space-y-4 shadow-lg">
+          <div className="flex items-center justify-between border-b border-[#1B2A3B] pb-3">
+            <div className="flex items-center gap-2">
+              <Radio className="w-4 h-4 text-[#1769AA] animate-pulse" />
+              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                Live Regional Status
+              </span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0E2E20] text-[#23966B] border border-[#23966B]/30 font-semibold">
+              Telemetry Active
+            </span>
+          </div>
+
+          {/* Restrained KPI Matrix */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="p-3 bg-[#0A1118] border border-[#1B2A3B] rounded-lg">
+              <span className="text-[10px] uppercase font-mono text-[#64748B] block">Active Events</span>
+              <span className="text-xl font-bold font-mono text-white mt-0.5 block">
+                {activeIncidents.length}
+              </span>
+            </div>
+            <div className="p-3 bg-[#0A1118] border border-[#1B2A3B] rounded-lg">
+              <span className="text-[10px] uppercase font-mono text-[#64748B] block">Choke Points</span>
+              <span className={`text-xl font-bold font-mono mt-0.5 block ${severeCount > 0 ? 'text-[#E5484D]' : 'text-[#23966B]'}`}>
+                {severeCount}
+              </span>
+            </div>
+            <div className="p-3 bg-[#0A1118] border border-[#1B2A3B] rounded-lg">
+              <span className="text-[10px] uppercase font-mono text-[#64748B] block">Avg Delay</span>
+              <span className="text-xl font-bold font-mono text-[#F0A629] mt-0.5 block">
+                14m
+              </span>
+            </div>
+          </div>
+
+          {/* Live Incident Snippet Feed */}
+          <div className="space-y-2 pt-1">
+            <span className="text-[10px] font-mono uppercase text-[#64748B] font-semibold tracking-wider block">
+              Recent Verified Disruption:
+            </span>
+            {activeIncidents.slice(0, 2).map((inc, idx) => (
+              <div
+                key={idx}
+                className="p-2.5 bg-[#0A1118] border border-[#1B2A3B] rounded-lg text-xs space-y-1"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-slate-200 truncate max-w-[200px]">
+                    {inc.locationName || inc.title}
+                  </span>
+                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold uppercase ${
+                    inc.severity === 'severe' || inc.severity === 'critical'
+                      ? 'bg-[#381316] text-[#E5484D]'
+                      : 'bg-[#38260E] text-[#F0A629]'
+                  }`}>
+                    {inc.severity || 'Moderate'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B]">
+                  <span>{inc.category || 'Incident'}</span>
+                  <span className="font-mono text-[#23966B] font-medium">TrustScore: {inc.trustScore || 85}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-2 border-t border-[#1B2A3B] flex items-center justify-between text-[11px] text-[#64748B]">
+            <span>Municipal Consensus: 14 Sensor Drops</span>
+            <Link to="/authority" className="text-[#5C7EAA] hover:text-white font-medium">
+              View Control Room →
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 3. SIGNATURE EVIDENCE CHAIN BANNER */}
-      <section className="max-w-6xl mx-auto px-4">
-        <EvidenceChainBanner />
-      </section>
-
-      {/* 4. HOW IT WORKS: HORIZONTAL 5-STAGE PROCESS */}
-      <section id="how-it-works" className="max-w-6xl mx-auto px-4 space-y-8">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400">
-            The Closed-Loop Framework
-          </span>
-          <h2 className="text-3xl font-black text-white">How RouteWise AI Works</h2>
-          <p className="text-xs text-slate-400">
-            A cohesive 5-stage mobility protocol connecting passengers, employers, and traffic authorities.
-          </p>
+      {/* 2. THREE OPERATIONAL WORKSPACES */}
+      <section className="space-y-4 pt-4 border-t border-[#1B2A3B]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-tight">Dedicated Operation Portals</h2>
+            <p className="text-xs text-[#94A3B8]">Purpose-built consoles tailored to municipal stakeholders.</p>
+          </div>
+          <Link to="/select-role" className="text-xs text-[#1769AA] hover:text-[#1B7DC8] font-semibold flex items-center gap-1">
+            <span>Select Workspace</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5">
-          {[
-            {
-              num: '01',
-              title: 'REPORT',
-              sub: 'A passenger reports a road problem with GPS, photos, or voice memo.',
-              color: 'text-cyan-400',
-              badge: 'Citizen Crowdsource'
-            },
-            {
-              num: '02',
-              title: 'VERIFY',
-              sub: 'Evidence, speed telemetry, and multiple signals strengthen the incident.',
-              color: 'text-emerald-400',
-              badge: 'TrustScore Pipeline'
-            },
-            {
-              num: '03',
-              title: 'ALERT',
-              sub: 'Affected travelers receive proactive re-routing suggestions before departure.',
-              color: 'text-amber-400',
-              badge: 'Smart Diversion'
-            },
-            {
-              num: '04',
-              title: 'ANALYSE',
-              sub: 'Historical records reveal recurring choke points and workforce delay patterns.',
-              color: 'text-purple-400',
-              badge: 'Analytics Engine'
-            },
-            {
-              num: '05',
-              title: 'IMPROVE',
-              sub: 'Authorities investigate persistent road problems, re-timing signals and fixing drainage.',
-              color: 'text-teal-400',
-              badge: 'Civic Optimization'
-            }
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 relative overflow-hidden"
-            >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Passenger Console */}
+          <div className="p-5 rounded-xl bg-[#101D2B] border border-[#1B2A3B] hover:border-[#1769AA]/60 transition-colors flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className={`text-2xl font-black font-mono ${item.color}`}>{item.num}</span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
-                  {item.badge}
-                </span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#1769AA] font-bold">Portal 01</span>
+                <span className="text-[10px] text-[#64748B] font-mono">Public Commute</span>
               </div>
-              <h3 className="text-base font-black text-white">{item.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">{item.sub}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. ROLE SELECTION CALLOUT */}
-      <section id="features" className="max-w-6xl mx-auto px-4 space-y-8">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400">
-            Dedicated Role Portals
-          </span>
-          <h2 className="text-3xl font-black text-white">Choose Your RouteWise Portal</h2>
-          <p className="text-xs text-slate-400">
-            Three independent application experiences engineered for distinct mobility responsibilities.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Role Card 1: Passenger */}
-          <div className="p-7 rounded-3xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 shadow-xl space-y-5 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                <Navigation className="w-6 h-6 fill-cyan-400 rotate-45" />
-              </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-400">For Commuters</span>
-              <h3 className="text-xl font-black text-white">Passenger Portal</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Find optimal routes, receive real-time obstruction warnings, inspect 6-level TrustScores, and track live commutes.
+              <h3 className="text-base font-bold text-white">Passenger & Commuter</h3>
+              <p className="text-xs text-[#94A3B8] leading-relaxed">
+                Dynamic route calculation, choke-point avoidance, crowdsourced hazard reporting, and verifiable delay certificates.
               </p>
             </div>
             <Link
-              to="/passenger"
-              className="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+              to="/login?portal=passenger"
+              className="w-full py-2 bg-[#142436] hover:bg-[#1B2A3B] text-slate-200 hover:text-white border border-[#1B2A3B] font-semibold text-xs rounded-md text-center transition-colors"
             >
-              <span>Continue as Passenger</span>
-              <ArrowRight className="w-4 h-4" />
+              Enter Passenger Portal
             </Link>
           </div>
 
-          {/* Role Card 2: Employer */}
-          <div className="p-7 rounded-3xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 shadow-xl space-y-5 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <Building2 className="w-6 h-6" />
+          {/* Employer Console */}
+          <div className="p-5 rounded-xl bg-[#101D2B] border border-[#1B2A3B] hover:border-[#23966B]/60 transition-colors flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#23966B] font-bold">Portal 02</span>
+                <span className="text-[10px] text-[#64748B] font-mono">Workforce</span>
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">For Organizations</span>
-              <h3 className="text-xl font-black text-white">Employer Portal</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Understand consented employee commute delays, download verifiable delay certificates, and eliminate attendance disputes.
+              <h3 className="text-base font-bold text-white">Employer Commute Portal</h3>
+              <p className="text-xs text-[#94A3B8] leading-relaxed">
+                Consented employee commute monitoring, corridor bottleneck validation, and authentic delay verification reports.
               </p>
             </div>
             <Link
-              to="/employer"
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+              to="/login?portal=employer"
+              className="w-full py-2 bg-[#142436] hover:bg-[#1B2A3B] text-slate-200 hover:text-white border border-[#1B2A3B] font-semibold text-xs rounded-md text-center transition-colors"
             >
-              <span>Continue as Employer</span>
-              <ArrowRight className="w-4 h-4" />
+              Enter Employer Portal
             </Link>
           </div>
 
-          {/* Role Card 3: Traffic Authority */}
-          <div className="p-7 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 shadow-xl space-y-5 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                <Activity className="w-6 h-6" />
+          {/* Traffic Authority Console */}
+          <div className="p-5 rounded-xl bg-[#101D2B] border border-[#1B2A3B] hover:border-[#F0A629]/60 transition-colors flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#F0A629] font-bold">Portal 03</span>
+                <span className="text-[10px] text-[#64748B] font-mono">Municipal TOC</span>
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400">For Traffic Officials</span>
-              <h3 className="text-xl font-black text-white">Traffic Authority Center</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Analyse telemetry clusters, investigate recurring bottlenecks, view chronological traffic stories, and plan signal timing.
+              <h3 className="text-base font-bold text-white">Traffic Control Operations</h3>
+              <p className="text-xs text-[#94A3B8] leading-relaxed">
+                Live sensor aggregation, recurring congestion investigation, incident dispatch, and municipal signal timing analysis.
               </p>
             </div>
             <Link
-              to="/authority"
-              className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+              to="/login?portal=authority"
+              className="w-full py-2 bg-[#142436] hover:bg-[#1B2A3B] text-slate-200 hover:text-white border border-[#1B2A3B] font-semibold text-xs rounded-md text-center transition-colors"
             >
-              <span>Continue as Authority</span>
-              <ArrowRight className="w-4 h-4" />
+              Enter Control Operations
             </Link>
           </div>
         </div>

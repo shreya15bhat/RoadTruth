@@ -11,60 +11,57 @@ import {
   ShieldCheck, 
   Settings, 
   LogOut, 
-  Sun, 
-  Moon, 
   Upload, 
   Menu, 
-  X,
-  Navigation
+  X
 } from 'lucide-react';
 import CSVImportModal from '../forms/CSVImportModal';
 
 export default function EmployerLayout() {
   const navigate = useNavigate();
-  const { theme, toggleTheme, employees, importDataset } = useRouteWise();
+  const { employees, importDataset, logoutUser, user } = useRouteWise();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const navItems = [
-    { label: 'Overview', path: '/employer', icon: BarChart3, end: true },
-    { label: 'Employees', path: '/employer/employees', icon: Users },
-    { label: 'Active Journeys', path: '/employer/journeys', icon: Car },
-    { label: 'Delays', path: '/employer/delays', icon: Clock },
-    { label: 'Reports', path: '/employer/reports', icon: FileText },
-    { label: 'Privacy', path: '/employer/privacy', icon: ShieldCheck },
-    { label: 'Settings', path: '/employer/settings', icon: Settings }
+    { label: 'Workforce Overview', path: '/employer', icon: BarChart3, end: true },
+    { label: 'Employee Roster', path: '/employer/employees', icon: Users },
+    { label: 'Active Commutes', path: '/employer/journeys', icon: Car },
+    { label: 'Delay Certificates', path: '/employer/delays', icon: Clock },
+    { label: 'Audit Reports', path: '/employer/reports', icon: FileText },
+    { label: 'Consent & Privacy', path: '/employer/privacy', icon: ShieldCheck },
+    { label: 'Organization Settings', path: '/employer/settings', icon: Settings }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-[#0A1118] text-slate-100 flex flex-col md:flex-row font-sans">
       {/* DESKTOP EMPLOYER SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-slate-800 bg-slate-950/95 p-4 shrink-0 justify-between">
+      <aside className="hidden md:flex flex-col w-64 border-r border-[#1B2A3B] bg-[#101D2B] p-4 shrink-0 justify-between">
         <div className="space-y-6">
           {/* Logo & Portal Identity */}
-          <Link to="/" className="flex items-center gap-2.5 px-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-400 flex items-center justify-center text-slate-950 shadow-lg shadow-emerald-500/20">
-              <Building2 className="w-5 h-5 text-slate-950" />
+          <Link to="/" className="flex items-center gap-3 px-2 py-1">
+            <div className="w-8 h-8 rounded-lg bg-[#1769AA] flex items-center justify-center text-white shadow-sm">
+              <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
-              <div className="text-base font-black tracking-tight text-white flex items-center gap-1">
-                RouteWise <span className="text-emerald-400 font-mono text-xs">AI</span>
+              <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                ROADTRUTH
               </div>
-              <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider block -mt-0.5">
-                Organization Portal
+              <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                Workforce Mobility Portal
               </span>
             </div>
           </Link>
 
           {/* Consented Roster Counter */}
-          <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs space-y-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-              Workforce Monitored
+          <div className="p-3 rounded-lg bg-[#142436] border border-[#1B2A3B] text-xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-[#64748B] block tracking-wider">
+              Monitored Personnel
             </span>
-            <div className="text-lg font-black text-white font-mono flex items-center justify-between">
-              <span>{employees.length} Staff</span>
-              <span className="text-[10px] text-emerald-400 font-sans font-semibold">Consent Active</span>
+            <div className="text-base font-bold text-white font-mono flex items-center justify-between">
+              <span>{employees.length} Consented Staff</span>
+              <span className="text-[10px] text-[#23966B] font-sans font-semibold">Active</span>
             </div>
           </div>
 
@@ -78,14 +75,14 @@ export default function EmployerLayout() {
                   to={item.path}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                        ? 'bg-[#1769AA]/15 text-white border-l-2 border-[#1769AA]'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-[#142436]'
                     }`
                   }
                 >
-                  <Icon className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <Icon className="w-4 h-4 shrink-0 text-[#94A3B8]" />
                   <span>{item.label}</span>
                 </NavLink>
               );
@@ -94,32 +91,32 @@ export default function EmployerLayout() {
         </div>
 
         {/* Sidebar Footer Controls */}
-        <div className="pt-4 border-t border-slate-800/80 space-y-2">
+        <div className="pt-4 border-t border-[#1B2A3B] space-y-3">
           <div className="flex items-center justify-between px-1 text-xs text-slate-400">
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-white"
-              title="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-emerald-400" />}
-            </button>
+            <span className="text-[11px] text-slate-300 font-medium truncate max-w-[110px]">
+              {user?.agency || user?.username || 'Organization Rep'}
+            </span>
 
             <button
-              onClick={() => navigate('/select-role')}
-              className="text-[11px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 font-semibold"
+              onClick={() => {
+                logoutUser();
+                navigate('/login?portal=employer');
+              }}
+              className="text-[11px] text-slate-400 hover:text-[#E5484D] flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+              title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Switch Portal</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
       </aside>
 
       {/* MOBILE HEADER */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-[#1B2A3B] bg-[#101D2B]">
         <div className="flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-emerald-400" />
-          <span className="font-bold text-white text-sm">RouteWise Organization</span>
+          <Building2 className="w-5 h-5 text-[#1769AA]" />
+          <span className="font-bold text-white text-sm">ROADTRUTH Organization Portal</span>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -131,21 +128,21 @@ export default function EmployerLayout() {
 
       {/* MOBILE MENU DROPDOWN */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-slate-950 p-4 space-y-1">
+        <div className="md:hidden border-b border-[#1B2A3B] bg-[#101D2B] p-4 space-y-1">
           {navItems.map((item, idx) => (
             <Link
               key={idx}
               to={item.path}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 p-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-900"
+              className="flex items-center gap-3 p-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#142436]"
             >
-              <item.icon className="w-4 h-4 text-emerald-400" />
+              <item.icon className="w-4 h-4 text-[#1769AA]" />
               <span>{item.label}</span>
             </Link>
           ))}
           <button
             onClick={() => { setIsMobileMenuOpen(false); navigate('/select-role'); }}
-            className="w-full text-left p-2.5 text-xs text-amber-400 font-bold"
+            className="w-full text-left p-2.5 text-xs text-[#F0A629] font-bold"
           >
             Switch Role Experience →
           </button>
@@ -155,18 +152,18 @@ export default function EmployerLayout() {
       {/* MAIN PORTAL CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Top Organization Header Strip */}
-        <div className="border-b border-slate-800/80 bg-slate-950/60 px-4 sm:px-8 py-2 text-[11px] flex flex-wrap items-center justify-between gap-2 text-slate-400">
+        <div className="border-b border-[#1B2A3B] bg-[#101D2B]/80 px-4 sm:px-8 py-2 text-[11px] flex flex-wrap items-center justify-between gap-2 text-slate-400">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-[#23966B] animate-pulse"></span>
             <span className="font-semibold text-slate-200">Organization Jurisdiction:</span>
             <span>Mangaluru Regional Workforce Transit Hub</span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="text-emerald-400 hover:underline font-bold flex items-center gap-1"
+              className="text-[#1769AA] hover:text-[#1B7DC8] font-semibold flex items-center gap-1.5 transition-colors"
             >
-              <Upload className="w-3 h-3" />
+              <Upload className="w-3.5 h-3.5" />
               <span>Import Employee CSV</span>
             </button>
           </div>

@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRouteWise } from '../../context/RouteWiseContext';
 import { 
-  AlertTriangle, 
   MapPin, 
   Camera, 
   Video, 
   LocateFixed, 
   CheckCircle,
-  X,
-  Upload
+  AlertTriangle
 } from 'lucide-react';
 
 export default function IncidentReportForm({ onReportSubmitted = null }) {
@@ -25,14 +23,15 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
   const [videoName, setVideoName] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = [
-    { id: 'accident', label: 'Accident' },
-    { id: 'flood', label: 'Flood' },
-    { id: 'roadblock', label: 'Roadblock' },
-    { id: 'construction', label: 'Construction' },
-    { id: 'heavy_traffic', label: 'Heavy Traffic' },
-    { id: 'other', label: 'Other' }
+    { id: 'accident', label: 'Accident', severity: 'severe' },
+    { id: 'flood', label: 'Flooding', severity: 'severe' },
+    { id: 'roadblock', label: 'Roadblock', severity: 'severe' },
+    { id: 'construction', label: 'Construction', severity: 'moderate' },
+    { id: 'heavy_traffic', label: 'Congestion', severity: 'moderate' },
+    { id: 'other', label: 'Hazard', severity: 'moderate' }
   ];
 
   const handleUseLocation = () => {
@@ -46,12 +45,12 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
         setIsLocating(false);
         setLat(pos.coords.latitude);
         setLng(pos.coords.longitude);
-        setLocationName(`Near GPS (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`);
-        showToast('Location Set', 'Using your GPS location', 'success');
+        setLocationName(`Corridor GPS (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`);
+        showToast('Location Set', 'Using precise GPS coordinates', 'success');
       },
-      (err) => {
+      () => {
         setIsLocating(false);
-        showToast('Location Permission Denied', 'Please enter location manually.', 'info');
+        showToast('Location Denied', 'Please enter location description manually.', 'info');
       },
       { timeout: 8000 }
     );
@@ -73,48 +72,55 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    const chosenCat = categories.find(c => c.id === category);
     const newInc = {
       title: `${category.toUpperCase().replace('_', ' ')}: ${locationName}`,
       category,
-      severity: category === 'accident' || category === 'roadblock' ? 'severe' : 'moderate',
+      severity: chosenCat?.severity || 'moderate',
       locationName,
-      lat,
-      lng,
-      delayMinutes,
+      lat: Number(lat),
+      lng: Number(lng),
+      delayMinutes: Number(delayMinutes),
+      description: `Reported obstruction: ${category.replace('_', ' ')} near ${locationName}. Estimated delay +${delayMinutes} mins.`,
       imageUrl: photoName ? 'https://images.unsplash.com/photo-1543393470-bce01e0a233b?auto=format&fit=crop&w=800&q=80' : null
     };
 
-    addIncident(newInc);
-    setSubmitted(true);
-    showToast('Report Submitted', 'Your report has been logged.', 'success');
-
-    if (onReportSubmitted) onReportSubmitted(newInc);
+    try {
+      const created = await addIncident(newInc);
+      setSubmitted(true);
+      if (onReportSubmitted) onReportSubmitted(created || newInc);
+    } catch {
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
     return (
-      <div className="p-8 bg-slate-900 border border-slate-800 rounded-2xl text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+      <div className="p-8 bg-[#101D2B] border border-[#1B2A3B] rounded-lg text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-[#23966B]/20 text-[#23966B] flex items-center justify-center mx-auto">
           <CheckCircle className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-white">Report Submitted</h3>
+          <h3 className="text-base font-bold text-white">Incident Report Dispatched</h3>
           <p className="text-xs text-slate-400 mt-1">
-            Thank you. Your report is now available on the traffic map.
+            Thank you for improving city road intelligence. Your report is now live on the arterial grid.
           </p>
         </div>
         <div className="flex gap-3 justify-center pt-2">
           <button
             onClick={() => setSubmitted(false)}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-slate-200 transition-colors"
+            className="px-4 py-2 bg-[#142436] hover:bg-[#1B2A3B] text-xs font-semibold rounded-lg text-slate-200 transition-colors border border-[#1B2A3B]"
           >
             Submit Another
           </button>
           <button
             onClick={() => navigate('/passenger')}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-xs font-bold rounded-xl text-slate-950 transition-colors"
+            className="px-4 py-2 bg-[#1769AA] hover:bg-[#1B7DC8] text-xs font-bold rounded-lg text-white transition-colors"
           >
             View on Map
           </button>
@@ -124,12 +130,12 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-6 text-slate-100">
+    <form onSubmit={handleSubmit} className="p-6 bg-[#101D2B] border border-[#1B2A3B] rounded-lg shadow-sm space-y-6 text-slate-100">
       
-      {/* Step 1: What happened? */}
+      {/* Step 1: Incident Category */}
       <div className="space-y-2">
         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-          Step 1: What happened?
+          1. Hazard Classification
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {categories.map((c) => (
@@ -137,10 +143,10 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
               key={c.id}
               type="button"
               onClick={() => setCategory(c.id)}
-              className={`py-2.5 px-3 rounded-xl text-xs font-semibold text-center transition-all border ${
+              className={`py-2.5 px-3 rounded-lg text-xs font-semibold text-center transition-all border ${
                 category === c.id
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-sm'
-                  : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                  ? 'bg-[#1769AA]/20 text-white border-[#1769AA] ring-1 ring-[#1769AA]/40'
+                  : 'bg-[#142436] border-[#1B2A3B] text-slate-400 hover:text-slate-200 hover:border-[#2E4763]'
               }`}
             >
               {c.label}
@@ -149,20 +155,20 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
         </div>
       </div>
 
-      {/* Step 2: Where? */}
+      {/* Step 2: Location */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-            Step 2: Where?
+            2. Corridor Location
           </label>
           <button
             type="button"
             onClick={handleUseLocation}
             disabled={isLocating}
-            className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-semibold disabled:opacity-50"
+            className="text-[11px] text-[#1769AA] hover:text-[#1B7DC8] flex items-center gap-1 font-semibold disabled:opacity-50 transition-colors"
           >
             <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
-            <span>{isLocating ? 'Locating...' : 'Use Current Location'}</span>
+            <span>{isLocating ? 'Acquiring GPS...' : 'Use Device GPS'}</span>
           </button>
         </div>
         <div className="relative">
@@ -173,7 +179,7 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
             value={locationName}
             onChange={(e) => setLocationName(e.target.value)}
             placeholder="e.g. NH-66 Thokkottu Junction"
-            className="w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className="w-full pl-9 pr-3 py-2.5 bg-[#142436] border border-[#1B2A3B] rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#1769AA] transition-colors"
           />
         </div>
       </div>
@@ -181,25 +187,25 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
       {/* Step 3: Evidence */}
       <div className="space-y-2">
         <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-          Step 3: Evidence (Optional)
+          3. Forensic Verification (Optional)
         </label>
         <div className="grid grid-cols-2 gap-3">
           
           {/* Photo */}
-          <label className={`p-3 rounded-xl border flex items-center justify-center gap-2 cursor-pointer transition-colors text-xs font-semibold ${
-            photoName ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          <label className={`p-3 rounded-lg border flex items-center justify-center gap-2 cursor-pointer transition-colors text-xs font-semibold ${
+            photoName ? 'bg-[#1769AA]/15 border-[#1769AA] text-white' : 'bg-[#142436] border-[#1B2A3B] text-slate-400 hover:border-[#2E4763]'
           }`}>
             <Camera className="w-4 h-4" />
-            <span className="truncate">{photoName || 'Add Photo'}</span>
+            <span className="truncate">{photoName || 'Attach Photo'}</span>
             <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
           </label>
 
           {/* Video */}
-          <label className={`p-3 rounded-xl border flex items-center justify-center gap-2 cursor-pointer transition-colors text-xs font-semibold ${
-            videoName ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+          <label className={`p-3 rounded-lg border flex items-center justify-center gap-2 cursor-pointer transition-colors text-xs font-semibold ${
+            videoName ? 'bg-[#1769AA]/15 border-[#1769AA] text-white' : 'bg-[#142436] border-[#1B2A3B] text-slate-400 hover:border-[#2E4763]'
           }`}>
             <Video className="w-4 h-4" />
-            <span className="truncate">{videoName || 'Add Video'}</span>
+            <span className="truncate">{videoName || 'Attach Video'}</span>
             <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
           </label>
 
@@ -210,9 +216,10 @@ export default function IncidentReportForm({ onReportSubmitted = null }) {
       <div className="pt-2">
         <button
           type="submit"
-          className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs rounded-xl shadow transition-colors flex items-center justify-center gap-1.5"
+          disabled={isSubmitting}
+          className="w-full py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-2"
         >
-          <span>Submit Report</span>
+          <span>{isSubmitting ? 'Transmitting Incident...' : 'Broadcast Incident Report'}</span>
         </button>
       </div>
 

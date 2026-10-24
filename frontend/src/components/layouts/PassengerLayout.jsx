@@ -8,18 +8,14 @@ import {
   Bell, 
   AlertTriangle, 
   Car, 
-  ShieldCheck, 
   Settings, 
   HelpCircle, 
   LogOut, 
-  Sun, 
-  Moon, 
   AlertOctagon, 
   Upload, 
   Menu, 
   X,
-  Lock,
-  Search
+  Radio
 } from 'lucide-react';
 import EmergencyModal from '../common/EmergencyModal';
 import CSVImportModal from '../forms/CSVImportModal';
@@ -27,14 +23,11 @@ import CSVImportModal from '../forms/CSVImportModal';
 export default function PassengerLayout() {
   const navigate = useNavigate();
   const { 
-    theme, 
-    toggleTheme, 
     activeJourney, 
     privacySettings, 
-    updatePrivacySettings,
-    sosActive, 
-    triggerSOS, 
-    importDataset 
+    importDataset,
+    logoutUser,
+    user
   } = useRouteWise();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,44 +35,44 @@ export default function PassengerLayout() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const navItems = [
-    { label: 'Dashboard', path: '/passenger', icon: Compass, end: true },
+    { label: 'Live Dashboard', path: '/passenger', icon: Compass, end: true },
     { label: 'Plan Route', path: '/passenger/route', icon: Route },
     { label: 'Traffic Alerts', path: '/passenger/alerts', icon: Bell },
     { label: 'Report Incident', path: '/passenger/report', icon: AlertTriangle },
     { label: 'My Journeys', path: '/passenger/journeys', icon: Car },
     { label: 'Settings', path: '/passenger/settings', icon: Settings },
-    { label: 'Help', path: '/passenger/help', icon: HelpCircle }
+    { label: 'Help & Docs', path: '/passenger/help', icon: HelpCircle }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-[#0A1118] text-slate-100 flex flex-col md:flex-row font-sans">
       {/* DESKTOP PASSENGER SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-slate-800 bg-slate-950/95 p-4 shrink-0 justify-between">
+      <aside className="hidden md:flex flex-col w-64 border-r border-[#1B2A3B] bg-[#101D2B] p-4 shrink-0 justify-between">
         <div className="space-y-6">
           {/* Logo & Portal Identity */}
-          <Link to="/" className="flex items-center gap-2.5 px-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 via-cyan-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/20">
-              <Navigation className="w-5 h-5 fill-slate-950 rotate-45" />
+          <Link to="/" className="flex items-center gap-3 px-2 py-1">
+            <div className="w-8 h-8 rounded-lg bg-[#1769AA] flex items-center justify-center text-white shadow-sm">
+              <Navigation className="w-4 h-4 fill-white rotate-45" />
             </div>
             <div>
-              <div className="text-base font-black tracking-tight text-white flex items-center gap-1">
-                RouteWise <span className="text-cyan-400 font-mono text-xs">AI</span>
+              <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                ROADTRUTH
               </div>
-              <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider block -mt-0.5">
-                Passenger Portal
+              <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                Passenger Console
               </span>
             </div>
           </Link>
 
           {/* Active Tracking Pill */}
           {activeJourney.isActive && (
-            <div className="p-2.5 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 text-xs text-cyan-300 space-y-1">
-              <div className="flex items-center gap-1.5 font-bold">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+            <div className="p-3 rounded-lg bg-[#142436] border border-[#1769AA]/50 text-xs text-slate-200 space-y-1">
+              <div className="flex items-center gap-2 font-bold text-[#1769AA]">
+                <span className="w-2 h-2 rounded-full bg-[#23966B] animate-ping"></span>
                 <span>Active Commute Live</span>
               </div>
-              <div className="text-[10px] text-slate-400 truncate">
-                Speed: {activeJourney.speedKmh} km/h • {activeJourney.distanceRemainingKm} km left
+              <div className="text-[11px] text-slate-400 font-mono">
+                {activeJourney.speedKmh} km/h • {activeJourney.distanceRemainingKm} km remaining
               </div>
             </div>
           )}
@@ -94,14 +87,14 @@ export default function PassengerLayout() {
                   to={item.path}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-sm'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                        ? 'bg-[#1769AA]/15 text-white border-l-2 border-[#1769AA]'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-[#142436]'
                     }`
                   }
                 >
-                  <Icon className="w-4 h-4 shrink-0 text-cyan-400" />
+                  <Icon className="w-4 h-4 shrink-0 text-[#94A3B8]" />
                   <span>{item.label}</span>
                 </NavLink>
               );
@@ -110,46 +103,46 @@ export default function PassengerLayout() {
         </div>
 
         {/* Sidebar Footer Controls */}
-        <div className="pt-4 border-t border-slate-800/80 space-y-2">
+        <div className="pt-4 border-t border-[#1B2A3B] space-y-3">
           {/* Quick SOS Trigger */}
           <button
             onClick={() => setIsEmergencyOpen(true)}
-            className="w-full py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 px-3 rounded-lg bg-[#E5484D]/15 hover:bg-[#E5484D]/25 text-[#E5484D] border border-[#E5484D]/30 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
-            <AlertOctagon className="w-4 h-4 text-red-400" />
+            <AlertOctagon className="w-4 h-4 text-[#E5484D]" />
             <span>Emergency SOS</span>
           </button>
 
           <div className="flex items-center justify-between px-1 text-xs text-slate-400">
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-white"
-              title="Toggle Theme"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
-            </button>
+            <span className="text-[11px] text-slate-300 font-medium truncate max-w-[110px]">
+              {user?.username || user?.email || 'Citizen User'}
+            </span>
 
             <button
-              onClick={() => navigate('/select-role')}
-              className="text-[11px] text-slate-400 hover:text-cyan-400 flex items-center gap-1 font-semibold"
+              onClick={() => {
+                logoutUser();
+                navigate('/login?portal=passenger');
+              }}
+              className="text-[11px] text-slate-400 hover:text-[#E5484D] flex items-center gap-1 font-semibold cursor-pointer transition-colors"
+              title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Switch Portal</span>
+              <span>Sign Out</span>
             </button>
           </div>
         </div>
       </aside>
 
       {/* MOBILE TOPBAR & DRAWER */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-[#1B2A3B] bg-[#101D2B]">
         <Link to="/" className="flex items-center gap-2">
-          <Navigation className="w-5 h-5 text-cyan-400 rotate-45" />
-          <span className="font-bold text-white text-sm">RouteWise Passenger</span>
+          <Navigation className="w-5 h-5 text-[#1769AA] rotate-45" />
+          <span className="font-bold text-white text-sm tracking-tight">ROADTRUTH Passenger</span>
         </Link>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsEmergencyOpen(true)}
-            className="p-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold"
+            className="p-1.5 rounded-lg bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30 text-xs font-bold"
           >
             SOS
           </button>
@@ -164,21 +157,21 @@ export default function PassengerLayout() {
 
       {/* MOBILE MENU DROPDOWN */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-slate-950 p-4 space-y-1">
+        <div className="md:hidden border-b border-[#1B2A3B] bg-[#101D2B] p-4 space-y-1">
           {navItems.map((item, idx) => (
             <Link
               key={idx}
               to={item.path}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 p-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-900"
+              className="flex items-center gap-3 p-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-[#142436]"
             >
-              <item.icon className="w-4 h-4 text-cyan-400" />
+              <item.icon className="w-4 h-4 text-[#1769AA]" />
               <span>{item.label}</span>
             </Link>
           ))}
           <button
             onClick={() => { setIsMobileMenuOpen(false); navigate('/select-role'); }}
-            className="w-full text-left p-2.5 text-xs text-amber-400 font-bold"
+            className="w-full text-left p-2.5 text-xs text-[#F0A629] font-bold"
           >
             Switch Role Experience →
           </button>
@@ -188,18 +181,18 @@ export default function PassengerLayout() {
       {/* MAIN PORTAL CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Top Mini Commute Status Bar */}
-        <div className="border-b border-slate-800/80 bg-slate-950/60 px-4 sm:px-8 py-2 text-[11px] flex flex-wrap items-center justify-between gap-2 text-slate-400">
+        <div className="border-b border-[#1B2A3B] bg-[#101D2B]/80 px-4 sm:px-8 py-2 text-[11px] flex flex-wrap items-center justify-between gap-2 text-slate-400">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span className="font-semibold text-slate-200">Commute Telemetry:</span>
-            <span>{privacySettings.isSharingCommute ? 'Consent-driven corridor sharing active' : 'Sharing is disabled'}</span>
+            <span className="w-2 h-2 rounded-full bg-[#23966B] animate-pulse"></span>
+            <span className="font-semibold text-slate-200">Corridor Telemetry:</span>
+            <span>{privacySettings.isSharingCommute ? 'Consent-driven corridor sharing active' : 'Commute sharing paused'}</span>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="text-cyan-400 hover:underline font-bold flex items-center gap-1"
+              className="text-[#1769AA] hover:text-[#1B7DC8] font-semibold flex items-center gap-1.5 transition-colors"
             >
-              <Upload className="w-3 h-3" />
+              <Upload className="w-3.5 h-3.5" />
               <span>Import Incidents CSV</span>
             </button>
           </div>

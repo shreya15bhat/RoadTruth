@@ -45,21 +45,21 @@ function createIncidentDivIcon(category, severity) {
   let isClosed = severity === 'closure' || category === 'roadblock' || category === 'closure';
 
   if (isClosed) {
-    color = '#ffffff';
-    bg = 'rgba(15, 23, 42, 0.95)';
-    borderColor = '#ef4444';
+    color = '#FFFFFF';
+    bg = 'rgba(16, 29, 43, 0.95)';
+    borderColor = '#E5484D';
   } else if (isSevere) {
-    color = '#ef4444';
-    bg = 'rgba(239, 68, 68, 0.25)';
-    borderColor = '#ef4444';
+    color = '#E5484D'; // Traffic Congestion
+    bg = 'rgba(229, 72, 77, 0.22)';
+    borderColor = '#E5484D';
   } else if (severity === 'moderate') {
-    color = '#f59e0b';
-    bg = 'rgba(245, 158, 11, 0.25)';
-    borderColor = '#f59e0b';
+    color = '#F0A629'; // Moderate Traffic
+    bg = 'rgba(240, 166, 41, 0.22)';
+    borderColor = '#F0A629';
   } else {
-    color = '#10b981';
-    bg = 'rgba(16, 185, 129, 0.25)';
-    borderColor = '#10b981';
+    color = '#23966B'; // Clear / Normal
+    bg = 'rgba(35, 150, 107, 0.22)';
+    borderColor = '#23966B';
   }
 
   // Category Icon SVGs
@@ -275,22 +275,21 @@ export default function TrafficMap({
       {/* TOP FLOATING OVERLAYS (Z-20) */}
       <div className="absolute top-3 left-3 right-3 z-[20] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
         
-        {/* Left Badge: Data Mode & Initial Demo Area Notice */}
+        {/* Left Badge: Data Mode & Live Grid Notice */}
         <div className="flex items-center gap-2 pointer-events-auto">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-800 text-xs shadow-lg">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
             <span className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">
-              Traffic Data: Dataset Mode
+              Live Corridor Telemetry
             </span>
-            <span className="hidden sm:inline text-slate-500 font-mono text-[10px]">| Mangaluru Demonstration</span>
+            <span className="hidden sm:inline text-slate-500 font-mono text-[10px]">| Coastal Karnataka Grid</span>
           </div>
 
           {selectedRoute && (
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-950/80 backdrop-blur-md border border-cyan-500/40 text-cyan-300 text-xs shadow-lg">
-              <Navigation className="w-3.5 h-3.5" />
-              <span className="font-bold">DEMO ROUTE:</span>
+              <Navigation className="w-3.5 h-3.5 rotate-45" />
+              <span className="font-bold">ACTIVE ROUTE:</span>
               <span className="truncate max-w-[160px]">{selectedRoute.name || 'Selected Route'}</span>
-              <span className="text-[10px] text-cyan-400/80">(Application Data)</span>
             </div>
           )}
         </div>

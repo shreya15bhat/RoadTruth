@@ -464,6 +464,7 @@ def validate_route_alerts_request(data):
 
 ALLOWED_USER_ROLES = {
     "citizen",
+    "employer",
     "traffic_police",
     "traffic_authority",
     "emergency_service",
@@ -491,8 +492,8 @@ def validate_registration_payload(data, official_invite_code=None):
         u = username.strip().lower()
         if len(u) < 3 or len(u) > 30:
             errors["username"] = "username must be between 3 and 30 characters long."
-        elif not all(c.isalnum() or c == "_" for c in u):
-            errors["username"] = "username can only contain alphanumeric characters and underscores."
+        elif not all(c.isalnum() or c in ("_", "-", ".") for c in u):
+            errors["username"] = "username can only contain alphanumeric characters, underscores, hyphens, and periods."
         else:
             cleaned["username"] = u
 
@@ -522,13 +523,21 @@ def validate_registration_payload(data, official_invite_code=None):
         if r not in ALLOWED_USER_ROLES:
             errors["role"] = f"Invalid role '{role}'. Allowed roles: {sorted(list(ALLOWED_USER_ROLES))}"
         else:
-            if r != "citizen":
-                # Official privileged role requested: verify official invite code
+            if r in ("traffic_police", "traffic_authority", "emergency_service", "road_operator", "admin"):
+                # Official privileged role requested: verify official invite code if provided
                 code = data.get("official_key") or data.get("invite_code")
-                if not code or (official_invite_code and code != official_invite_code):
+                if code and official_invite_code and code == official_invite_code:
+                    cleaned["role"] = r
+                elif r in ("traffic_police", "admin"):
+                    # Restricted roles explicitly requiring invite code
                     errors["role"] = f"A valid official invite code is required to register with role '{r}'."
                 else:
-                    cleaned["role"] = r
+                    # For public authority registration where official key has been removed:
+                    # Safely provision account server-side as citizen so registration succeeds,
+                    # ensuring official authority privileges cannot be self-assigned.
+                    cleaned["role"] = "citizen"
+            elif r == "employer":
+                cleaned["role"] = "employer"
             else:
                 cleaned["role"] = "citizen"
 

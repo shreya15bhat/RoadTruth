@@ -1,116 +1,142 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRouteWise } from '../../context/RouteWiseContext';
 import { 
   User, 
   Building2, 
   Activity, 
   ArrowRight, 
   Navigation, 
-  ShieldCheck, 
-  Lock 
+  ShieldAlert
 } from 'lucide-react';
 
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
-  const { setRole, showToast } = useRouteWise();
 
-  const handleSelect = (roleKey, destinationPath) => {
-    setRole(roleKey);
-    showToast(`Welcome to ${roleKey.toUpperCase()} Portal`, 'Dedicated role workspace activated.', 'info');
-    navigate(destinationPath);
+  const handleRoleSelect = (portalKey) => {
+    navigate(`/login?portal=${portalKey}`);
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 sm:py-16 space-y-10">
+    <div className="max-w-4xl mx-auto py-8 sm:py-16 space-y-10 px-4">
+      {/* Header */}
       <div className="text-center space-y-3">
-        <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 flex items-center justify-center text-slate-950 shadow-lg shadow-cyan-500/25">
-          <Navigation className="w-6 h-6 fill-slate-950 rotate-45" />
+        <div className="w-10 h-10 mx-auto rounded-lg bg-[#1769AA] flex items-center justify-center text-white shadow-sm">
+          <Navigation className="w-5 h-5 fill-white rotate-45" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Choose your RouteWise experience
+        <div className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+          ROADTRUTH Intelligence Network
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          Select Dedicated Workspace
         </h1>
-        <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-          RouteWise AI provides distinct portals tailored to the responsibilities of travelers, organizations, and civic authorities.
+        <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+          Access the mobility intelligence module configured for your operational role.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* 3 Role Selection Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* 1. Passenger Card */}
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-cyan-500/60 shadow-2xl space-y-6 transition-all flex flex-col justify-between group">
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <User className="w-7 h-7" />
+        <div className="p-6 rounded-lg bg-[#101D2B] border border-[#1B2A3B] hover:border-[#1769AA] shadow-sm space-y-5 transition-all flex flex-col justify-between group">
+          <div className="space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-[#1769AA]/15 text-[#1769AA] flex items-center justify-center">
+              <User className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-cyan-400">Travel Smarter</span>
-              <h2 className="text-2xl font-black text-white mt-1">Passenger</h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">Citizen Transit</span>
+              <h2 className="text-lg font-bold text-white mt-0.5">Passenger</h2>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Find routes, receive alerts and report road problems.
+              Calculate optimal commute routes, receive verified corridor hazard alerts, and report obstructions.
             </p>
           </div>
 
-          <button
-            onClick={() => handleSelect('passenger', '/passenger')}
-            className="w-full py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2"
-          >
-            <span>Continue as Passenger</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => handleRoleSelect('passenger')}
+              className="w-full py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>Sign In as Passenger</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <div className="text-center">
+              <button
+                onClick={() => navigate('/register?role=passenger')}
+                className="text-[11px] text-[#1769AA] hover:text-[#1B7DC8] font-semibold"
+              >
+                Create citizen account →
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* 2. Employer Card */}
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-emerald-500/60 shadow-2xl space-y-6 transition-all flex flex-col justify-between group">
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Building2 className="w-7 h-7" />
+        <div className="p-6 rounded-lg bg-[#101D2B] border border-[#1B2A3B] hover:border-[#1769AA] shadow-sm space-y-5 transition-all flex flex-col justify-between group">
+          <div className="space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-[#1769AA]/15 text-[#1769AA] flex items-center justify-center">
+              <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400">Understand Commute Delays</span>
-              <h2 className="text-2xl font-black text-white mt-1">Employer</h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#64748B]">Workforce Transit</span>
+              <h2 className="text-lg font-bold text-white mt-0.5">Employer</h2>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Monitor consented employee journeys and commute patterns.
+              Monitor consented employee corridor delays, verify traffic disruption credentials, and reduce attendance disputes.
             </p>
           </div>
 
-          <button
-            onClick={() => handleSelect('employer', '/employer')}
-            className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
-          >
-            <span>Continue as Employer</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => handleRoleSelect('employer')}
+              className="w-full py-2.5 bg-[#1769AA] hover:bg-[#1B7DC8] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>Sign In as Employer</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <div className="text-center">
+              <button
+                onClick={() => navigate('/register?role=employer')}
+                className="text-[11px] text-[#1769AA] hover:text-[#1B7DC8] font-semibold"
+              >
+                Register organization →
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* 3. Traffic Authority Card */}
-        <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-amber-500/60 shadow-2xl space-y-6 transition-all flex flex-col justify-between group">
-          <div className="space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Activity className="w-7 h-7" />
+        <div className="p-6 rounded-lg bg-[#101D2B] border border-[#1B2A3B] hover:border-[#F0A629] shadow-sm space-y-5 transition-all flex flex-col justify-between group">
+          <div className="space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-[#F0A629]/15 text-[#F0A629] flex items-center justify-center">
+              <Activity className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400">Understand Traffic Patterns</span>
-              <h2 className="text-2xl font-black text-white mt-1">Traffic Authority</h2>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#F0A629]">Command Desk</span>
+              <h2 className="text-lg font-bold text-white mt-0.5">Traffic Authority</h2>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Analyse incidents, hotspots and recurring congestion.
+              Real-time incident response, corridor congestion management, sensor telemetry analytics, and dispatch controls.
             </p>
           </div>
 
-          <button
-            onClick={() => handleSelect('authority', '/authority')}
-            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
-          >
-            <span>Continue as Authority</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => handleRoleSelect('authority')}
+              className="w-full py-2.5 bg-[#142436] hover:bg-[#1B2A3B] text-white font-bold text-xs rounded-lg border border-[#1B2A3B] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <span>Official Department Sign In</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <div className="text-center">
+              <button
+                onClick={() => navigate('/register?role=authority')}
+                className="text-[11px] text-slate-400 hover:text-white font-semibold"
+              >
+                Register departmental agency →
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="p-4 bg-slate-900/60 rounded-2xl border border-slate-800 text-center text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
-        *Notice: Role switching is a prototype demonstration feature. In a commercial deployment, access to Employer and Authority consoles is governed by enterprise OAuth2 and police department credentials.
       </div>
     </div>
   );
